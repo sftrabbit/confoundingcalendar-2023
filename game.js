@@ -1,4 +1,4 @@
-const spriteDimensions = {
+const cellDimensions = {
   width: 8,
   height: 8
 }
@@ -13,7 +13,9 @@ const playerVelocity = {
   y: 0
 }
 
-const gravity = 0.0035
+const WALK_VELOCITY = 5.5
+const FRICTION = 0.7
+const GRAVITY = 50.4 /*0.0035*/
 
 const levelMap = `
 #########┗┛P┗┓#┗┓┏┛┏━┛┃#
@@ -66,8 +68,8 @@ window.onload = () => {
   const resizeObserver = new ResizeObserver((elements) => {
     updateCanvasScaling(screenContext)
 
-    renderCanvas.width = level.width * spriteDimensions.width
-    renderCanvas.height = level.height * spriteDimensions.height
+    renderCanvas.width = level.width * cellDimensions.width
+    renderCanvas.height = level.height * cellDimensions.height
 
     const renderContext = renderCanvas.getContext('2d')
     renderContext.imageSmoothingEnabled = false
@@ -80,28 +82,41 @@ window.onload = () => {
   let leftPressed = false
   let rightPressed = false
 
-  const tick = () => {
+  let previousTimestamp = null
+
+  const tick = (timestamp) => {
+    if (previousTimestamp == null) {
+      previousTimestamp = timestamp
+      requestAnimationFrame(tick)
+      return;
+    }
+
+    const deltaTime = timestamp - previousTimestamp
+    previousTimestamp = timestamp
+
+    const fps = 1000 / deltaTime
+    
     const renderContext = renderCanvas.getContext('2d')
 
     if (leftPressed) {
-      playerVelocity.x = -0.04
+      playerVelocity.x = -WALK_VELOCITY
     } else if (rightPressed) {
-      playerVelocity.x = 0.04
+      playerVelocity.x = WALK_VELOCITY
     } else {
       if (playerVelocity.x > 0) {
-        playerVelocity.x -= 0.004
+        playerVelocity.x -= FRICTION
         if (playerVelocity.x < 0) {
           playerVelocity.x = 0
         }
       } else if (playerVelocity.x < 0) {
-        playerVelocity.x += 0.004
+        playerVelocity.x += FRICTION
         if (playerVelocity.x > 0) {
           playerVelocity.x = 0
         }
       }
     }
 
-    playerVelocity.y += gravity
+    playerVelocity.y += GRAVITY / fps
 
     const leftProbe = {
       x: Math.floor(playerPosition.x - 0.5),
@@ -117,11 +132,11 @@ window.onload = () => {
       playerPosition.y = leftProbe.y - 0.5
     }
 
-    playerPosition.x += playerVelocity.x
-    playerPosition.y += playerVelocity.y
+    playerPosition.x += playerVelocity.x / fps
+    playerPosition.y += playerVelocity.y / fps
 
     renderGame(screenContext, renderContext, level)
-    requestAnimationFrame(tick);
+    requestAnimationFrame(tick)
   }
 
   requestAnimationFrame(tick)
@@ -133,7 +148,7 @@ window.onload = () => {
 
     if (event.key == 'ArrowUp') {
       if (playerVelocity.y === 0) {
-        playerVelocity.y = -0.1
+        playerVelocity.y = -12
       }
     }
     if (event.key == 'ArrowLeft') {
@@ -194,8 +209,8 @@ function renderGame(screenContext, renderContext, level) {
     for (let y = 0; y < level.height; y++) {
       if (level.data[y][x].length > 0) {
         renderContext.fillRect(
-          x * spriteDimensions.width, y * spriteDimensions.height,
-          spriteDimensions.width, spriteDimensions.height
+          x * cellDimensions.width, y * cellDimensions.height,
+          cellDimensions.width, cellDimensions.height
         )
       }
     }
@@ -204,8 +219,8 @@ function renderGame(screenContext, renderContext, level) {
   renderContext.fillStyle = '#ff0000'
   renderContext.beginPath()
   renderContext.arc(
-    Math.floor(playerPosition.x * spriteDimensions.width), Math.floor(playerPosition.y * spriteDimensions.height),
-    spriteDimensions.height / 2,
+    Math.floor(playerPosition.x * cellDimensions.width), Math.floor(playerPosition.y * cellDimensions.height),
+    cellDimensions.height / 2,
     0, 2 * Math.PI
   )
   renderContext.fill()
