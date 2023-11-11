@@ -30,9 +30,9 @@ const levelMap = `
 ###....................#
 #####..................#
 #.....#..*....#........#
-#....##..*........#..###
-####.##..*...........*.#
-########################
+#....##..*#...#...#..###
+####.##..*..#.#......*.#
+######.#######.#########
 ########################
 ########################
 ###############.......##
@@ -118,18 +118,69 @@ window.onload = () => {
 
     playerVelocity.y += GRAVITY / fps
 
-    const leftProbe = {
-      x: Math.floor(playerPosition.x - 0.5),
-      y: Math.floor(playerPosition.y + 0.5)
-    }
-    const rightProbe = {
-      x: Math.floor(playerPosition.x + 0.5),
-      y: Math.floor(playerPosition.y + 0.5)
+    const projectedPlayerPosition = {
+      x: playerPosition.x + playerVelocity.x / fps,
+      y: playerPosition.y + playerVelocity.y / fps
     }
 
-    if (playerVelocity.y > 0 && (level.data[leftProbe.y][leftProbe.x].length > 0 || level.data[rightProbe.y][rightProbe.x].length > 0)) {
+    // Floor probe
+
+    const floorProbe = () => {
+      if (playerVelocity.y === 0) {
+        return null
+      }
+
+      const dir = Math.sign(playerVelocity.y)
+
+      const leftProbe = {
+        x: Math.floor(playerPosition.x - 0.5),
+        y: Math.floor(projectedPlayerPosition.y + 0.5 * dir)
+      }
+      const rightProbe = {
+        x: Math.ceil(playerPosition.x + 0.5) - 1,
+        y: Math.floor(projectedPlayerPosition.y + 0.5 * dir)
+      }
+
+      if (!(level.data[leftProbe.y][leftProbe.x].length > 0 || level.data[rightProbe.y][rightProbe.x].length > 0)) {
+        return null
+      }
+
+      return Math.floor(leftProbe.y - dir) + 0.5
+    }
+
+    const sidewaysProbe = () => {
+      if (playerVelocity.x === 0) {
+        return null
+      }
+
+      const dir = Math.sign(playerVelocity.x)
+
+      const upProbe = {
+        x: Math.floor(projectedPlayerPosition.x + 0.5 * dir),
+        y: Math.floor(playerPosition.y - 0.5)
+      }
+      const downProbe = {
+        x: Math.floor(projectedPlayerPosition.x + 0.5 * dir),
+        y: Math.ceil(playerPosition.y + 0.5) - 1
+      }
+
+      if (!(level.data[upProbe.y][upProbe.x].length > 0 || level.data[downProbe.y][downProbe.x].length > 0)) {
+        return null
+      }
+
+      return Math.floor(upProbe.x - dir) + 0.5
+    }
+
+    const floorCollision = floorProbe()
+    const sidewaysCollision = sidewaysProbe()
+
+    if (floorCollision) {
+      playerPosition.y = floorCollision
       playerVelocity.y = 0
-      playerPosition.y = leftProbe.y - 0.5
+    }
+    if (sidewaysCollision) {
+      playerPosition.x = sidewaysCollision
+      playerVelocity.x = 0
     }
 
     playerPosition.x += playerVelocity.x / fps
