@@ -14,7 +14,7 @@ const playerVelocity = {
 }
 
 const WALK_VELOCITY = 5.5
-const FRICTION = 0.7
+const FRICTION = 0.8
 const GRAVITY = 50.4 /*0.0035*/
 
 const levelMap = `
@@ -125,7 +125,7 @@ window.onload = () => {
 
     // Floor probe
 
-    const floorProbe = () => {
+    const floorProbe = (probePosition) => {
       if (playerVelocity.y === 0) {
         return null
       }
@@ -133,12 +133,12 @@ window.onload = () => {
       const dir = Math.sign(playerVelocity.y)
 
       const leftProbe = {
-        x: Math.floor(playerPosition.x - 0.5),
-        y: Math.floor(projectedPlayerPosition.y + 0.5 * dir)
+        x: Math.floor(probePosition.x - 0.5),
+        y: Math.floor(probePosition.y + 0.5 * dir)
       }
       const rightProbe = {
-        x: Math.ceil(playerPosition.x + 0.5) - 1,
-        y: Math.floor(projectedPlayerPosition.y + 0.5 * dir)
+        x: Math.ceil(probePosition.x + 0.5) - 1,
+        y: Math.floor(probePosition.y + 0.5 * dir)
       }
 
       if (!(level.data[leftProbe.y][leftProbe.x].length > 0 || level.data[rightProbe.y][rightProbe.x].length > 0)) {
@@ -148,7 +148,7 @@ window.onload = () => {
       return Math.floor(leftProbe.y - dir) + 0.5
     }
 
-    const sidewaysProbe = () => {
+    const sidewaysProbe = (probePosition) => {
       if (playerVelocity.x === 0) {
         return null
       }
@@ -156,12 +156,12 @@ window.onload = () => {
       const dir = Math.sign(playerVelocity.x)
 
       const upProbe = {
-        x: Math.floor(projectedPlayerPosition.x + 0.5 * dir),
-        y: Math.floor(playerPosition.y - 0.5)
+        x: Math.floor(probePosition.x + 0.5 * dir),
+        y: Math.floor(probePosition.y - 0.5)
       }
       const downProbe = {
-        x: Math.floor(projectedPlayerPosition.x + 0.5 * dir),
-        y: Math.ceil(playerPosition.y + 0.5) - 1
+        x: Math.floor(probePosition.x + 0.5 * dir),
+        y: Math.ceil(probePosition.y + 0.5) - 1
       }
 
       if (!(level.data[upProbe.y][upProbe.x].length > 0 || level.data[downProbe.y][downProbe.x].length > 0)) {
@@ -171,16 +171,37 @@ window.onload = () => {
       return Math.floor(upProbe.x - dir) + 0.5
     }
 
-    const floorCollision = floorProbe()
-    const sidewaysCollision = sidewaysProbe()
+    const floorCollision = floorProbe({
+      x: playerPosition.x,
+      y: projectedPlayerPosition.y
+    })
+    const sidewaysCollision = sidewaysProbe({
+      x: projectedPlayerPosition.x,
+      y: playerPosition.y
+    })
+    console.log('floor', floorCollision)
+    console.log('sideways', sidewaysCollision)
 
     if (floorCollision) {
       playerPosition.y = floorCollision
       playerVelocity.y = 0
     }
+
     if (sidewaysCollision) {
       playerPosition.x = sidewaysCollision
       playerVelocity.x = 0
+    }
+
+    if (!floorCollision && !sidewaysCollision) {
+      const floorCollision = floorProbe({
+        x: projectedPlayerPosition.x,
+        y: projectedPlayerPosition.y
+      })
+
+      if (floorCollision) {
+        playerPosition.y = floorCollision
+        playerVelocity.y = 0
+      }
     }
 
     playerPosition.x += playerVelocity.x / fps
