@@ -15,8 +15,9 @@ const playerVelocity = {
 
 const WALK_VELOCITY = 5.5
 const FRICTION = 0.8
-const GRAVITY = 50.4 /*0.0035*/
-const COYOTE_TIME = 0.15
+const GRAVITY = 50.4
+const COYOTE_TIME = 0.1
+const ANTICOYOTE_TIME = 0.1
 
 const levelMap = `
 #########┗┛P┗┓#┗┓┏┛┏━┛┃#
@@ -30,14 +31,14 @@ const levelMap = `
 #...#┗━................#
 ###....................#
 #####..................#
-#.....#..*....#........#
-#....#...*#...#...#..###
-####.#...*..#.#......*.#
-##############.#########
-########################
-########################
-###############.......##
-######┏┓#######.#####.##
+#.....#.......#........#
+#....#.#......#...#..###
+####.#..#...#.#......*.#
+##########.###.#########
+##########.#############
+##########.#############
+##########.####.......##
+######┏┓##.####.#####.##
 ######┗┛#######.......##
 ###############...G...##
 ###############.......##
@@ -58,6 +59,7 @@ const characterMap = {
 const clearColor = '#0e0e12'
 
 let jumping = false
+let skipFrame = false
 
 window.onload = () => {
   const level = loadLevel();
@@ -90,6 +92,7 @@ window.onload = () => {
   let previousTimestamp = null
 
   let lastOnGroundTimestamp = 0
+  let jumpTimestamp = null
 
   const tick = (timestamp) => {
     if (previousTimestamp == null) {
@@ -98,12 +101,26 @@ window.onload = () => {
       return;
     }
 
-    const deltaTime = timestamp - previousTimestamp
+    let deltaTime = timestamp - previousTimestamp
+
+    if (skipFrame) {
+      deltaTime *= 10
+    }
+
+    if (deltaTime > 50) {
+      deltaTime = 50
+    }
+
     previousTimestamp = timestamp
 
     const fps = 1000 / deltaTime
     
     const renderContext = renderCanvas.getContext('2d')
+
+    if (jumping) {
+      jumpTimestamp = timestamp
+      jumping = false
+    }
 
     if (leftPressed) {
       playerVelocity.x = -WALK_VELOCITY
@@ -132,36 +149,24 @@ window.onload = () => {
 
     // Floor probe
 
-    const floorProbe = (probePosition) => {
-      if (playerVelocity.y === 0) {
-        return null
+    const verticalProbe = (playerPosition, probePosition, dir) => {
+      const startY = Math.floor(playerPosition.y + 0.5 * dir)
+      const probeY = Math.floor(probePosition.y + 0.5 * dir)
+
+      const leftProbeX = Math.floor(probePosition.x - 0.5)
+      const rightProbeX = Math.ceil(probePosition.x + 0.5) - 1
+
+      for (let y = startY; y != probeY + dir; y += dir) {
+        if (level.data[y][leftProbeX].length > 0 || level.data[y][rightProbeX].length > 0) {
+          console.log(Math.floor(y - dir) + 0.5, y, dir)
+          return Math.floor(y - dir) + 0.5
+        }
       }
 
-      const dir = Math.sign(playerVelocity.y)
-
-      const leftProbe = {
-        x: Math.floor(probePosition.x - 0.5),
-        y: Math.floor(probePosition.y + 0.5 * dir)
-      }
-      const rightProbe = {
-        x: Math.ceil(probePosition.x + 0.5) - 1,
-        y: Math.floor(probePosition.y + 0.5 * dir)
-      }
-
-      if (!(level.data[leftProbe.y][leftProbe.x].length > 0 || level.data[rightProbe.y][rightProbe.x].length > 0)) {
-        return null
-      }
-
-      return Math.floor(leftProbe.y - dir) + 0.5
+      return null
     }
 
-    const sidewaysProbe = (probePosition) => {
-      if (playerVelocity.x === 0) {
-        return null
-      }
-
-      const dir = Math.sign(playerVelocity.x)
-
+    const horizontalProbe = (playerPosition, probePosition, dir) => {
       const upProbe = {
         x: Math.floor(probePosition.x + 0.5 * dir),
         y: Math.floor(probePosition.y - 0.5)
@@ -178,39 +183,57 @@ window.onload = () => {
       return Math.floor(upProbe.x - dir) + 0.5
     }
 
-    let onGround = false
-
-    const floorCollision = floorProbe({
+    const verticalCollision = verticalProbe(playerPosition, {
       x: playerPosition.x,
       y: projectedPlayerPosition.y
-    })
-    const sidewaysCollision = sidewaysProbe({
+    }, Math.sign(playerVelocity.y))
+    const leftCollision = horizontalProbe(playerPosition, {
       x: projectedPlayerPosition.x,
       y: playerPosition.y
-    })
+    }, -1)
+    const rightCollision = horizontalProbe(playerPosition, {
+      x: projectedPlayerPosition.x,
+      y: playerPosition.y
+    }, 1)
 
-    if (floorCollision) {
-      playerPosition.y = floorCollision
+    const horizontalCollision = leftCollision || rightCollision
+
+    let onGround = playerVelocity.y >= 0 && verticalCollision
+
+    if (verticalCollision) {
+      playerPosition.y = verticalCollision
       playerVelocity.y = 0
-      onGround = true
     }
 
-    if (sidewaysCollision) {
-      playerPosition.x = sidewaysCollision
-      playerVelocity.x = 0
+    if (horizontalCollision) {
+      // Leniency when colliding with ceiling/floor but there is a gap to move into
+      const dir = Math.sign(playerVelocity.x)
+      if (Math.abs((playerPosition.y % 1) - 0.5) < 0.1 && level.data[Math.floor(playerPosition.y)][Math.floor(playerPosition.x) + dir].length === 0) {
+        playerPosition.y = Math.floor(playerPosition.y) + 0.5
+      } else {
+        playerPosition.x = horizontalCollision
+        playerVelocity.x = 0
+      }
     }
 
-    if (!floorCollision && !sidewaysCollision) {
-      const floorCollision = floorProbe({
-        x: projectedPlayerPosition.x,
-        y: projectedPlayerPosition.y
-      })
+    // Corner check
+    if (playerVelocity.x !== 0 && playerVelocity.y !== 0) {
+      const horizontalMotionCollision = playerVelocity.x > 0 ? rightCollision : leftCollision
 
-      if (floorCollision) {
-        playerPosition.y = floorCollision
-        playerVelocity.y = 0
-        // TODO - only true if it's an actual floor collision
-        onGround = true
+      if (!horizontalMotionCollision && !verticalCollision) {
+        const verticalCollision = verticalProbe(playerPosition, {
+          x: playerPosition.x,
+          y: projectedPlayerPosition.y
+        }, Math.sign(playerVelocity.y))
+
+        if (verticalCollision) {
+          playerPosition.y = verticalCollision
+          playerVelocity.y = 0
+        }
+
+        if (playerVelocity.y >= 0 && verticalCollision) {
+          onGround = true
+        }
       }
     }
 
@@ -221,10 +244,19 @@ window.onload = () => {
     playerPosition.x += playerVelocity.x / fps
     playerPosition.y += playerVelocity.y / fps
 
-    if (jumping) {
-      jumping = false
-      if (onGround || (timestamp - lastOnGroundTimestamp) < COYOTE_TIME * 1000) {
-        playerVelocity.y = -12
+    if (jumpTimestamp != null) {
+      if ((timestamp - jumpTimestamp) < ANTICOYOTE_TIME * 1000) {
+        const jumpUpCollision = verticalProbe(playerPosition, {
+          x: playerPosition.x,
+          y: playerPosition.y - 12 / fps
+        }, -1)
+
+        if (!jumpUpCollision && (onGround || (timestamp - lastOnGroundTimestamp) < COYOTE_TIME * 1000)) {
+          playerVelocity.y = -12
+          jumpTimestamp = null
+        }
+      } else {
+        jumpTimestamp = null
       }
     }
 
@@ -248,6 +280,9 @@ window.onload = () => {
     if (event.key == 'ArrowRight') {
       rightPressed = true
     }
+    if (event.key == 'b') {
+      skipFrame = true
+    }
   })
   document.addEventListener('keyup', (event) => {
     if (event.key == 'ArrowLeft') {
@@ -255,6 +290,9 @@ window.onload = () => {
     }
     if (event.key == 'ArrowRight') {
       rightPressed = false
+    }
+    if (event.key == 'b') {
+      skipFrame = false
     }
   })
 }
