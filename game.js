@@ -16,6 +16,7 @@ const playerVelocity = {
 const WALK_VELOCITY = 5.5
 const FRICTION = 0.8
 const GRAVITY = 50.4 /*0.0035*/
+const COYOTE_TIME = 0.15
 
 const levelMap = `
 #########┗┛P┗┓#┗┓┏┛┏━┛┃#
@@ -30,9 +31,9 @@ const levelMap = `
 ###....................#
 #####..................#
 #.....#..*....#........#
-#....##..*#...#...#..###
-####.##..*..#.#......*.#
-######.#######.#########
+#....#...*#...#...#..###
+####.#...*..#.#......*.#
+##############.#########
 ########################
 ########################
 ###############.......##
@@ -46,13 +47,17 @@ const levelMap = `
 
 const OBJECTS = {
   Wall: 0,
+  Box: 1,
 }
 
 const characterMap = {
-  '#': [OBJECTS.Wall]
+  '#': [OBJECTS.Wall],
+  '*': [OBJECTS.Box]
 }
 
 const clearColor = '#0e0e12'
+
+let jumping = false
 
 window.onload = () => {
   const level = loadLevel();
@@ -83,6 +88,8 @@ window.onload = () => {
   let rightPressed = false
 
   let previousTimestamp = null
+
+  let lastOnGroundTimestamp = 0
 
   const tick = (timestamp) => {
     if (previousTimestamp == null) {
@@ -171,6 +178,8 @@ window.onload = () => {
       return Math.floor(upProbe.x - dir) + 0.5
     }
 
+    let onGround = false
+
     const floorCollision = floorProbe({
       x: playerPosition.x,
       y: projectedPlayerPosition.y
@@ -179,12 +188,11 @@ window.onload = () => {
       x: projectedPlayerPosition.x,
       y: playerPosition.y
     })
-    console.log('floor', floorCollision)
-    console.log('sideways', sidewaysCollision)
 
     if (floorCollision) {
       playerPosition.y = floorCollision
       playerVelocity.y = 0
+      onGround = true
     }
 
     if (sidewaysCollision) {
@@ -201,11 +209,24 @@ window.onload = () => {
       if (floorCollision) {
         playerPosition.y = floorCollision
         playerVelocity.y = 0
+        // TODO - only true if it's an actual floor collision
+        onGround = true
       }
+    }
+
+    if (onGround) {
+      lastOnGroundTimestamp = timestamp
     }
 
     playerPosition.x += playerVelocity.x / fps
     playerPosition.y += playerVelocity.y / fps
+
+    if (jumping) {
+      jumping = false
+      if (onGround || (timestamp - lastOnGroundTimestamp) < COYOTE_TIME * 1000) {
+        playerVelocity.y = -12
+      }
+    }
 
     renderGame(screenContext, renderContext, level)
     requestAnimationFrame(tick)
@@ -219,9 +240,7 @@ window.onload = () => {
     }
 
     if (event.key == 'ArrowUp') {
-      if (playerVelocity.y === 0) {
-        playerVelocity.y = -12
-      }
+      jumping = true;
     }
     if (event.key == 'ArrowLeft') {
       leftPressed = true
@@ -254,7 +273,6 @@ function loadLevel() {
         rowData.push([])
       }
     }
-      console.log(row)
 
     levelData.push(rowData)
   }
@@ -276,10 +294,10 @@ function renderGame(screenContext, renderContext, level) {
   clearCanvas(screenContext, clearColor)
   clearCanvas(renderContext, clearColor)
 
-  renderContext.fillStyle = '#ffffff'
   for (let x = 0; x < level.width; x++) {
     for (let y = 0; y < level.height; y++) {
-      if (level.data[y][x].length > 0) {
+      for (const object of level.data[y][x]) {
+        renderContext.fillStyle = object === OBJECTS.Wall ? '#ffffff' : '#00ff00'
         renderContext.fillRect(
           x * cellDimensions.width, y * cellDimensions.height,
           cellDimensions.width, cellDimensions.height
