@@ -32,11 +32,11 @@ const levelMap = `
 ###....................#
 #####..................#
 #.....#.......#........#
-#....#.#......#...#..###
-####.#..#...#.#......*.#
-##########.###.#########
-##########.#############
-##########.#############
+#....#.##.....#...#..###
+####.#......#.#......*.#
+#########.####.#########
+#########.##############
+########################
 ##########.####.......##
 ######┏┓##.####.#####.##
 ######┗┛#######.......##
@@ -201,14 +201,27 @@ window.onload = () => {
     let onGround = playerVelocity.y >= 0 && verticalCollision
 
     if (verticalCollision) {
-      playerPosition.y = verticalCollision
-      playerVelocity.y = 0
+      // Leniency when colliding with ceiling/floor but there is a gap to move into
+      const dir = Math.sign(playerVelocity.y)
+      if (!leftPressed && !rightPressed
+        && Math.abs((playerPosition.x % 1) - 0.5) < 0.1
+        && level.data[Math.floor(playerPosition.y) + dir][Math.floor(playerPosition.x)].length === 0
+        && level.data[Math.floor(playerPosition.y) + dir][Math.floor(playerPosition.x) + 1].length !== 0
+        && level.data[Math.floor(playerPosition.y) + dir][Math.floor(playerPosition.x) - 1].length !== 0) {
+        playerPosition.x = Math.floor(playerPosition.x) + 0.5
+      } else {
+        playerPosition.y = verticalCollision
+        playerVelocity.y = 0
+      }
     }
 
     if (horizontalCollision) {
       // Leniency when colliding with ceiling/floor but there is a gap to move into
       const dir = Math.sign(playerVelocity.x)
-      if (Math.abs((playerPosition.y % 1) - 0.5) < 0.1 && level.data[Math.floor(playerPosition.y)][Math.floor(playerPosition.x) + dir].length === 0) {
+      if (Math.abs((playerPosition.y % 1) - 0.5) < 0.1
+        && level.data[Math.floor(playerPosition.y)][Math.floor(playerPosition.x) + dir].length === 0
+        && level.data[Math.floor(playerPosition.y) + 1][Math.floor(playerPosition.x) + dir].length !== 0
+        && level.data[Math.floor(playerPosition.y) - 1][Math.floor(playerPosition.x) + dir].length !== 0) {
         playerPosition.y = Math.floor(playerPosition.y) + 0.5
       } else {
         playerPosition.x = horizontalCollision
