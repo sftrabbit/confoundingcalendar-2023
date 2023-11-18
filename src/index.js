@@ -2,10 +2,11 @@ import InputHandler from './input'
 import GameState from './gameState'
 import { updatePhysics } from './physics'
 import Renderer from './renderer'
-import { loadLevel } from './level'
+import Level from './level'
+import { applyRules } from './rules'
 
 window.onload = () => {
-  const level = loadLevel()
+  const level = new Level()
   const gameState = new GameState(level)
 
   const containerElement = document.getElementById('container')
@@ -29,7 +30,10 @@ window.onload = () => {
 
       const fps = 1000 / deltaTime
 
-      updatePhysics(gameState, inputHandler, timestamp, fps)
+      const event = updatePhysics(gameState, inputHandler, timestamp, fps)
+      if (event != null) {
+        applyRules(gameState, event)
+      }
       
       renderer.render(gameState)
     }

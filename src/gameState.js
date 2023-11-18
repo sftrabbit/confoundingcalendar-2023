@@ -15,6 +15,9 @@ class GameState {
 
     this.jumpTimestamp = null
     this.lastOnGroundTimestamp = 0
+
+    this.leftPushStartTimestamp = null
+    this.rightPushStartTimestamp = null
   }
 }
 

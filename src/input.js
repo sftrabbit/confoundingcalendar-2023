@@ -35,7 +35,7 @@ class InputHandler {
       }
     }
     if (event.key == 'ArrowRight') {
-      if (this.horizontalMovementStack.indexOf(MOVEMENT.Left) === -1) {
+      if (this.horizontalMovementStack.indexOf(MOVEMENT.Right) === -1) {
         this.horizontalMovementStack.push(MOVEMENT.Right)
       }
     }
@@ -45,6 +45,7 @@ class InputHandler {
   }
 
   onKeyUp (event) {
+
     if (event.key == 'ArrowLeft') {
       const i = this.horizontalMovementStack.indexOf(MOVEMENT.Left)
       if (i !== -1) {
