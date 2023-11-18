@@ -7,8 +7,8 @@ const JUMP_VELOCITY_CELLS_PER_SECOND = 12
 const FRICTION_CELLS_PER_SECOND_2 = 0.8
 const GRAVITY_CELLS_PER_SECOND_2 = 50.4
 
-const COYOTE_TIME_SECONDS = 0.07
-const ANTICOYOTE_TIME_SECONDS = 0.05
+const COYOTE_TIME_SECONDS = 0.1
+const ANTICOYOTE_TIME_SECONDS = 0.1
 
 const PUSH_HOLD_TIME_SECONDS = 0.3
 
@@ -150,10 +150,6 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   }
 
   if (onGround) {
-    if (inputHandler.jumpQueued) {
-      gameState.jumpTimestamp = timestamp
-    }
-
     if (rightCollision != null && horizontalMovement == MOVEMENT.Right) {
       if (gameState.rightPushStartTimestamp == null) {
         gameState.rightPushStartTimestamp = timestamp
@@ -197,34 +193,33 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   }
 
   if (inputHandler.jumpQueued) {
+    if (onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000) {
+      gameState.jumpTimestamp = timestamp
+      gameState.lastOnGroundTimestamp = 0
+    }
     inputHandler.jumpQueued = false
   }
 
   player.position.x += player.velocity.x / fps
   player.position.y += player.velocity.y / fps
 
-  // TODO - This code is super ugly and I think I broke coyote time
   if (gameState.jumpTimestamp != null) {
     if ((timestamp - gameState.jumpTimestamp) < ANTICOYOTE_TIME_SECONDS * 1000) {
-      if (onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000) {
-        if (Math.abs((player.position.x % 1) - 0.5) < 0.2) {
-          if (!level.hasObject({ x: playerCellPosition.x, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
-            && level.hasObject({ x: playerCellPosition.x + 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
-            && level.hasObject({ x: playerCellPosition.x - 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)) {
-            player.position.x = Math.floor(player.position.x) + 0.5
-          }
+      if (Math.abs((player.position.x % 1) - 0.5) < 0.2) {
+        if (!level.hasObject({ x: playerCellPosition.x, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
+          && level.hasObject({ x: playerCellPosition.x + 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
+          && level.hasObject({ x: playerCellPosition.x - 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)) {
+          player.position.x = Math.floor(player.position.x) + 0.5
         }
+      }
 
-        let jumpUpCollision = verticalProbe(player.position, {
-          x: player.position.x,
-          y: player.position.y - JUMP_VELOCITY_CELLS_PER_SECOND / fps
-        }, -1)
+      let jumpUpCollision = verticalProbe(player.position, {
+        x: player.position.x,
+        y: player.position.y - JUMP_VELOCITY_CELLS_PER_SECOND / fps
+      }, -1)
 
-        if (!jumpUpCollision) {
-          player.velocity.y = -JUMP_VELOCITY_CELLS_PER_SECOND
-          gameState.jumpTimestamp = null
-        }
-      } else {
+      if (!jumpUpCollision) {
+        player.velocity.y = -JUMP_VELOCITY_CELLS_PER_SECOND
         gameState.jumpTimestamp = null
       }
     } else {

@@ -45,7 +45,6 @@ class InputHandler {
   }
 
   onKeyUp (event) {
-
     if (event.key == 'ArrowLeft') {
       const i = this.horizontalMovementStack.indexOf(MOVEMENT.Left)
       if (i !== -1) {
