@@ -7,16 +7,11 @@ const FRICTION_CELLS_PER_SECOND_2 = 0.8
 const GRAVITY_CELLS_PER_SECOND_2 = 50.4
 
 const COYOTE_TIME_SECONDS = 0.07
-const ANTICOYOTE_TIME_SECONDS = 0.1
+const ANTICOYOTE_TIME_SECONDS = 0.05
 
 export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   const player = gameState.player
   const level = gameState.level
-
-  if (inputHandler.jumpQueued) {
-    gameState.jumpTimestamp = timestamp
-    inputHandler.jumpQueued = false
-  }
 
   const horizontalMovement = inputHandler.getHorizontalMovement()
 
@@ -145,7 +140,15 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   }
 
   if (onGround) {
+    if (inputHandler.jumpQueued) {
+      gameState.jumpTimestamp = timestamp
+    }
+
     gameState.lastOnGroundTimestamp = timestamp
+  }
+
+  if (inputHandler.jumpQueued) {
+    inputHandler.jumpQueued = false
   }
 
   player.position.x += player.velocity.x / fps
@@ -154,13 +157,25 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   if (gameState.jumpTimestamp != null) {
     // TODO - figure out why double tapping jump allows a high jump
     if ((timestamp - gameState.jumpTimestamp) < ANTICOYOTE_TIME_SECONDS * 1000) {
-      const jumpUpCollision = verticalProbe(player.position, {
-        x: player.position.x,
-        y: player.position.y - JUMP_VELOCITY_CELLS_PER_SECOND / fps
-      }, -1)
+      if (onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000) {
+        if (Math.abs((player.position.x % 1) - 0.5) < 0.2) {
+          if (level.data[Math.floor(player.position.y) - 1][Math.floor(player.position.x)].length === 0
+            && level.data[Math.floor(player.position.y) - 1][Math.floor(player.position.x) + 1].length !== 0
+            && level.data[Math.floor(player.position.y) - 1][Math.floor(player.position.x) - 1].length !== 0) {
+            player.position.x = Math.floor(player.position.x) + 0.5
+          }
+        }
 
-      if (!jumpUpCollision && (onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000)) {
-        player.velocity.y = -JUMP_VELOCITY_CELLS_PER_SECOND
+        let jumpUpCollision = verticalProbe(player.position, {
+          x: player.position.x,
+          y: player.position.y - JUMP_VELOCITY_CELLS_PER_SECOND / fps
+        }, -1)
+
+        if (!jumpUpCollision) {
+          player.velocity.y = -JUMP_VELOCITY_CELLS_PER_SECOND
+          gameState.jumpTimestamp = null
+        }
+      } else {
         gameState.jumpTimestamp = null
       }
     } else {
