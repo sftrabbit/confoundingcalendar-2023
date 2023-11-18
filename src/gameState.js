@@ -3,7 +3,7 @@ class GameState {
     this.player = {
       position: {
         x: 10.5,
-        y: 10.5
+        y: 7.5
       },
       velocity: {
         x: 0,
