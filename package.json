@@ -1,0 +1,26 @@
+{
+  "name": "confoundingcalendar-2023",
+  "version": "0.1.0",
+  "description": "",
+  "main": "game.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "serve": "webpack serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sftrabbit/confoundingcalendar-2023.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sftrabbit/confoundingcalendar-2023/issues"
+  },
+  "homepage": "https://github.com/sftrabbit/confoundingcalendar-2023#readme",
+  "devDependencies": {
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  }
+}
