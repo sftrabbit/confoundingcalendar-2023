@@ -12,6 +12,9 @@ class GameState {
     }
 
     this.level = level
+
+    this.jumpTimestamp = null
+    this.lastOnGroundTimestamp = 0
   }
 }
 

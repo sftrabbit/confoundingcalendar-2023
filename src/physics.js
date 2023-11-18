@@ -6,7 +6,7 @@ const JUMP_VELOCITY_CELLS_PER_SECOND = 12
 const FRICTION_CELLS_PER_SECOND_2 = 0.8
 const GRAVITY_CELLS_PER_SECOND_2 = 50.4
 
-const COYOTE_TIME_SECONDS = 0.1
+const COYOTE_TIME_SECONDS = 0.07
 const ANTICOYOTE_TIME_SECONDS = 0.1
 
 export function updatePhysics(gameState, inputHandler, timestamp, fps) {
@@ -154,12 +154,12 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   if (gameState.jumpTimestamp != null) {
     // TODO - figure out why double tapping jump allows a high jump
     if ((timestamp - gameState.jumpTimestamp) < ANTICOYOTE_TIME_SECONDS * 1000) {
-      // const jumpUpCollision = verticalProbe(player.position, {
-      //   x: player.position.x,
-      //   y: player.position.y - JUMP_VELOCITY / fps
-      // }, -1)
+      const jumpUpCollision = verticalProbe(player.position, {
+        x: player.position.x,
+        y: player.position.y - JUMP_VELOCITY_CELLS_PER_SECOND / fps
+      }, -1)
 
-      if ((onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000)) {
+      if (!jumpUpCollision && (onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000)) {
         player.velocity.y = -JUMP_VELOCITY_CELLS_PER_SECOND
         gameState.jumpTimestamp = null
       }

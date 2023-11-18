@@ -16,29 +16,25 @@ window.onload = () => {
   let previousTimestamp = null
 
   const tick = (timestamp) => {
-    if (previousTimestamp == null) {
-      previousTimestamp = timestamp
-      requestAnimationFrame(tick)
-      return
-    }
+    if (previousTimestamp != null) {
+      let deltaTime = timestamp - previousTimestamp
 
-    let deltaTime = timestamp - previousTimestamp
+      if (inputHandler.skipFrame) {
+        deltaTime *= 10
+      }
 
-    if (inputHandler.skipFrame) {
-      deltaTime *= 10
-    }
+      if (deltaTime > 50) {
+        deltaTime = 50
+      }
 
-    if (deltaTime > 50) {
-      deltaTime = 50
+      const fps = 1000 / deltaTime
+
+      updatePhysics(gameState, inputHandler, timestamp, fps)
+      
+      renderer.render(gameState)
     }
 
     previousTimestamp = timestamp
-
-    const fps = 1000 / deltaTime
-
-    updatePhysics(gameState, inputHandler, timestamp, fps)
-    
-    renderer.render(gameState)
     requestAnimationFrame(tick)
   }
 
