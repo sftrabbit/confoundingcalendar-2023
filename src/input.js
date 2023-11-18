@@ -5,6 +5,8 @@ export const MOVEMENT = {
   Left: 0b00001000,
 }
 
+// TODO - clear inputs when losing focus on game
+
 class InputHandler {
   constructor () {
     this.jumpQueued = false
@@ -28,10 +30,14 @@ class InputHandler {
       this.jumpQueued = true
     }
     if (event.key == 'ArrowLeft') {
-      this.horizontalMovementStack.push(MOVEMENT.Left)
+      if (this.horizontalMovementStack.indexOf(MOVEMENT.Left) === -1) {
+        this.horizontalMovementStack.push(MOVEMENT.Left)
+      }
     }
     if (event.key == 'ArrowRight') {
-      this.horizontalMovementStack.push(MOVEMENT.Right)
+      if (this.horizontalMovementStack.indexOf(MOVEMENT.Left) === -1) {
+        this.horizontalMovementStack.push(MOVEMENT.Right)
+      }
     }
     if (event.key == 'b') {
       this.skipFrame = true
