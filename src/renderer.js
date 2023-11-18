@@ -39,13 +39,16 @@ class Renderer {
 
     for (let x = 0; x < gameState.level.width; x++) {
       for (let y = 0; y < gameState.level.height; y++) {
-        for (const object of gameState.level.data[y][x]) {
-          this.renderContext.fillStyle = object === OBJECT_TYPES.Wall ? '#ffffff' : '#00ff00'
-          this.renderContext.fillRect(
-            x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
-            CELL_DIMENSIONS.width, CELL_DIMENSIONS.height
-          )
+        const cell = gameState.level.data[y][x]
+        if (cell === 0) {
+          continue
         }
+
+        this.renderContext.fillStyle = cell & OBJECT_TYPES.Wall ? '#ffffff' : '#00ff00'
+        this.renderContext.fillRect(
+          x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+          CELL_DIMENSIONS.width, CELL_DIMENSIONS.height
+        )
       }
     }
 

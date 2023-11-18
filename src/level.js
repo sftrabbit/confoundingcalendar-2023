@@ -26,13 +26,19 @@ const LEVEL_MAP = `
 `.trim()
 
 export const OBJECT_TYPES = {
-  Wall: 0,
-  Box: 1,
+  Wall: 0b00000001,
+  Box: 0b00000010,
+}
+
+export const OBJECT_GROUPS = {
+  Solid: OBJECT_TYPES.Wall | OBJECT_TYPES.Box,
+  Pushable: OBJECT_TYPES.Box,
+  Static: OBJECT_TYPES.Wall
 }
 
 const OBJECT_CHARACTER_MAP = {
-  '#': [OBJECT_TYPES.Wall],
-  '*': [OBJECT_TYPES.Box]
+  '#': OBJECT_TYPES.Wall,
+  '*': OBJECT_TYPES.Box
 }
 
 class Level {
@@ -44,13 +50,11 @@ class Level {
       const rowData = []
 
       for (const c of rowCharacters) {
+        let cell = 0
         if (OBJECT_CHARACTER_MAP[c] != null) {
-          const cell = []
-          cell.push(...OBJECT_CHARACTER_MAP[c])
-          rowData.push(cell)
-        } else {
-          rowData.push([])
+          cell |= OBJECT_CHARACTER_MAP[c]
         }
+        rowData.push(cell)
       }
 
       levelData.push(rowData)
@@ -62,7 +66,7 @@ class Level {
   }
 
   hasObject(position, objectType) {
-    return this.data[position.y][position.x].indexOf(objectType) !== -1
+    return (this.data[position.y][position.x] & objectType) > 0
   }
 
   transferObject(fromPosition, toPosition, objectType) {
@@ -71,17 +75,11 @@ class Level {
   }
 
   addObject(position, objectType) {
-    const index = this.data[position.y][position.x].indexOf(objectType)
-    if (index === -1) {
-      this.data[position.y][position.x].push(objectType)
-    }
+    this.data[position.y][position.x] |= objectType
   }
 
   removeObject(position, objectType) {
-    const index = this.data[position.y][position.x].indexOf(objectType)
-    if (index !== -1) {
-      this.data[position.y][position.x].splice(index, 1)
-    }
+    this.data[position.y][position.x] &= ~objectType
   }
 }
 

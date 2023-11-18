@@ -1,4 +1,5 @@
 import { MOVEMENT } from './input'
+import { OBJECT_GROUPS } from './level'
 
 const WALK_VELOCITY_CELLS_PER_SECOND = 5.5
 const JUMP_VELOCITY_CELLS_PER_SECOND = 12
@@ -53,7 +54,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     const rightProbeX = Math.ceil(probePosition.x + 0.5) - 1
 
     for (let y = startY; y != probeY + dir; y += dir) {
-      if (level.data[y][leftProbeX].length > 0 || level.data[y][rightProbeX].length > 0) {
+      if (level.hasObject({ x: leftProbeX, y: y }, OBJECT_GROUPS.Solid) || level.hasObject({ x: rightProbeX, y: y }, OBJECT_GROUPS.Solid)) {
         return Math.floor(y - dir) + 0.5
       }
     }
@@ -71,7 +72,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
       y: Math.ceil(probePosition.y + 0.5) - 1
     }
 
-    if (!(level.data[upProbe.y][upProbe.x].length > 0 || level.data[downProbe.y][downProbe.x].length > 0)) {
+    if (!(level.hasObject(upProbe, OBJECT_GROUPS.Solid) || level.hasObject(downProbe, OBJECT_GROUPS.Solid))) {
       return null
     }
 
@@ -95,14 +96,19 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
 
   let onGround = player.velocity.y >= 0 && verticalCollision != null
 
+  const playerCellPosition = {
+    x: Math.floor(player.position.x),
+    y: Math.floor(player.position.y)
+  }
+
   if (verticalCollision) {
     // Leniency when colliding with ceiling/floor but there is a gap to move into
     const dir = Math.sign(player.velocity.y)
     if (horizontalMovement == null
       && Math.abs((player.position.x % 1) - 0.5) < 0.2
-      && level.data[Math.floor(player.position.y) + dir][Math.floor(player.position.x)].length === 0
-      && level.data[Math.floor(player.position.y) + dir][Math.floor(player.position.x) + 1].length !== 0
-      && level.data[Math.floor(player.position.y) + dir][Math.floor(player.position.x) - 1].length !== 0) {
+      && !level.hasObject({ x: playerCellPosition.x, y: playerCellPosition.y + dir }, OBJECT_GROUPS.Solid)
+      && level.hasObject({ x: playerCellPosition.x + 1, y: playerCellPosition.y + dir }, OBJECT_GROUPS.Solid)
+      && level.hasObject({ x: playerCellPosition.x - 1, y: playerCellPosition.y + dir }, OBJECT_GROUPS.Solid)) {
       player.position.x = Math.floor(player.position.x) + 0.5
     } else {
       player.position.y = verticalCollision
@@ -114,7 +120,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     // Leniency when colliding with ceiling/floor but there is a gap to move into
     const dir = Math.sign(player.velocity.x)
     if (Math.abs((player.position.y % 1) - 0.5) < 0.1
-      && level.data[Math.floor(player.position.y)][Math.floor(player.position.x) + dir].length === 0) {
+      && !level.hasObject({ x: playerCellPosition.x + dir, y: playerCellPosition.y }, OBJECT_GROUPS.Solid)) {
       player.position.y = Math.floor(player.position.y) + 0.5
     } else {
       player.position.x = horizontalCollision
@@ -202,9 +208,9 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     if ((timestamp - gameState.jumpTimestamp) < ANTICOYOTE_TIME_SECONDS * 1000) {
       if (onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000) {
         if (Math.abs((player.position.x % 1) - 0.5) < 0.2) {
-          if (level.data[Math.floor(player.position.y) - 1][Math.floor(player.position.x)].length === 0
-            && level.data[Math.floor(player.position.y) - 1][Math.floor(player.position.x) + 1].length !== 0
-            && level.data[Math.floor(player.position.y) - 1][Math.floor(player.position.x) - 1].length !== 0) {
+          if (!level.hasObject({ x: playerCellPosition.x, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
+            && level.hasObject({ x: playerCellPosition.x + 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
+            && level.hasObject({ x: playerCellPosition.x - 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)) {
             player.position.x = Math.floor(player.position.x) + 0.5
           }
         }
