@@ -1,3 +1,5 @@
+import { MOVEMENT } from './input'
+
 class GameState {
   constructor (level) {
     this.player = {
@@ -18,6 +20,8 @@ class GameState {
 
     this.leftPushStartTimestamp = null
     this.rightPushStartTimestamp = null
+
+    this.playerFacing = MOVEMENT.Right
   }
 }
 

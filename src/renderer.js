@@ -1,4 +1,5 @@
 import { OBJECT_TYPES } from './level'
+import { MOVEMENT } from './input'
 
 const CELL_DIMENSIONS = {
   width: 8,
@@ -55,13 +56,23 @@ class Renderer {
       }
     }
 
-    this.renderContext.drawImage(
-      this.spritesheet,
-      0, 0, 8, 8,
-      Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-      Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-      8, 8
-    )
+    if (gameState.playerFacing === MOVEMENT.Right) {
+      this.renderContext.drawImage(
+        this.spritesheet,
+        0, 0, 8, 8,
+        Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+        Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+        8, 8
+      )
+    } else {
+      this.renderContext.drawImage(
+        this.spritesheet,
+        8, 0, 8, 8,
+        Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+        Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+        8, 8
+      )
+    }
     // this.renderContext.fillStyle = '#ff0000'
     // this.renderContext.beginPath()
     // this.renderContext.arc(

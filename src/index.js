@@ -12,40 +12,40 @@ window.onload = () => {
   const spritesheet = new Image()
   spritesheet.src = 'spritesheet.png'
 
-  const containerElement = document.getElementById('container')
-  const renderer = new Renderer(containerElement, gameState, spritesheet)
+  spritesheet.onload = () => {
+    const containerElement = document.getElementById('container')
+    const renderer = new Renderer(containerElement, gameState, spritesheet)
 
-  const inputHandler = new InputHandler()
+    const inputHandler = new InputHandler()
 
-  let previousTimestamp = null
+    let previousTimestamp = null
 
-  const tick = (timestamp) => {
-    if (previousTimestamp != null) {
-      let deltaTime = timestamp - previousTimestamp
+    const tick = (timestamp) => {
+      if (previousTimestamp != null) {
+        let deltaTime = timestamp - previousTimestamp
 
-      if (inputHandler.skipFrame) {
-        deltaTime *= 10
+        if (inputHandler.skipFrame) {
+          deltaTime *= 10
+        }
+
+        if (deltaTime > 50) {
+          deltaTime = 50
+        }
+
+        const fps = 1000 / deltaTime
+
+        const event = updatePhysics(gameState, inputHandler, timestamp, fps)
+        if (event != null) {
+          applyRules(gameState, event)
+        }
+        
+        renderer.render(gameState)
       }
 
-      if (deltaTime > 50) {
-        deltaTime = 50
-      }
-
-      const fps = 1000 / deltaTime
-
-      const event = updatePhysics(gameState, inputHandler, timestamp, fps)
-      if (event != null) {
-        applyRules(gameState, event)
-      }
-      
-      renderer.render(gameState)
+      previousTimestamp = timestamp
+      requestAnimationFrame(tick)
     }
 
-    previousTimestamp = timestamp
-    requestAnimationFrame(tick)
-  }
-
-  spritesheet.onload = () => {
     requestAnimationFrame(tick)
   }
 }

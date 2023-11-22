@@ -1,11 +1,11 @@
 import { MOVEMENT } from './input'
 import { OBJECT_GROUPS } from './level'
 
-const WALK_VELOCITY_CELLS_PER_SECOND = 5.5
-const JUMP_VELOCITY_CELLS_PER_SECOND = 12
+const WALK_VELOCITY_CELLS_PER_SECOND = 3.8
+const JUMP_VELOCITY_CELLS_PER_SECOND = 10
 
 const FRICTION_CELLS_PER_SECOND_2 = 0.8
-const GRAVITY_CELLS_PER_SECOND_2 = 50.4
+const GRAVITY_CELLS_PER_SECOND_2 = 30.4
 
 const COYOTE_TIME_SECONDS = 0.1
 const ANTICOYOTE_TIME_SECONDS = 0.1
@@ -22,8 +22,10 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
 
   if (horizontalMovement === MOVEMENT.Left) {
     player.velocity.x = -WALK_VELOCITY_CELLS_PER_SECOND
+    gameState.playerFacing = MOVEMENT.Left
   } else if (horizontalMovement === MOVEMENT.Right) {
     player.velocity.x = WALK_VELOCITY_CELLS_PER_SECOND
+    gameState.playerFacing = MOVEMENT.Right
   } else {
     if (player.velocity.x > 0) {
       player.velocity.x -= FRICTION_CELLS_PER_SECOND_2
