@@ -6,9 +6,10 @@ const CELL_DIMENSIONS = {
 }
 
 const CLEAR_COLOR = '#0e0e12'
+const BACKGROUND_COLOR = '#a6a6bf'
 
 class Renderer {
-  constructor (containerElement, gameState) {
+  constructor (containerElement, gameState, spritesheet) {
     this.screenCanvas = containerElement.querySelector('canvas')
     this.screenContext = this.screenCanvas.getContext('2d')
 
@@ -28,6 +29,8 @@ class Renderer {
     })
 
     resizeObserver.observe(this.screenCanvas)
+
+    this.spritesheet = spritesheet
   }
 
   render (gameState) {
@@ -35,7 +38,7 @@ class Renderer {
     this.renderContext.save()
 
     clearCanvas(this.screenContext, CLEAR_COLOR)
-    clearCanvas(this.renderContext, CLEAR_COLOR)
+    clearCanvas(this.renderContext, BACKGROUND_COLOR)
 
     for (let x = 0; x < gameState.level.width; x++) {
       for (let y = 0; y < gameState.level.height; y++) {
@@ -44,7 +47,7 @@ class Renderer {
           continue
         }
 
-        this.renderContext.fillStyle = cell & OBJECT_TYPES.Wall ? '#ffffff' : '#00ff00'
+        this.renderContext.fillStyle = cell & OBJECT_TYPES.Wall ? '#0e0e12' : '#00ff00'
         this.renderContext.fillRect(
           x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
           CELL_DIMENSIONS.width, CELL_DIMENSIONS.height
@@ -52,15 +55,22 @@ class Renderer {
       }
     }
 
-    this.renderContext.fillStyle = '#ff0000'
-    this.renderContext.beginPath()
-    this.renderContext.arc(
-      Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width), Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height),
-      CELL_DIMENSIONS.height / 2,
-      0, 2 * Math.PI
+    this.renderContext.drawImage(
+      this.spritesheet,
+      0, 0, 8, 8,
+      Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+      Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+      8, 8
     )
-    this.renderContext.fill()
-    this.renderContext.closePath()
+    // this.renderContext.fillStyle = '#ff0000'
+    // this.renderContext.beginPath()
+    // this.renderContext.arc(
+    //   Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width), Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height),
+    //   CELL_DIMENSIONS.height / 2,
+    //   0, 2 * Math.PI
+    // )
+    // this.renderContext.fill()
+    // this.renderContext.closePath()
 
     const screenAspectRatio = this.screenCanvas.clientWidth / this.screenCanvas.clientHeight
     const renderAspectRatio = gameState.level.width / gameState.level.height

@@ -8,9 +8,12 @@ import { applyRules } from './rules'
 window.onload = () => {
   const level = new Level()
   const gameState = new GameState(level)
+  
+  const spritesheet = new Image()
+  spritesheet.src = 'spritesheet.png'
 
   const containerElement = document.getElementById('container')
-  const renderer = new Renderer(containerElement, gameState)
+  const renderer = new Renderer(containerElement, gameState, spritesheet)
 
   const inputHandler = new InputHandler()
 
@@ -42,5 +45,7 @@ window.onload = () => {
     requestAnimationFrame(tick)
   }
 
-  requestAnimationFrame(tick)
+  spritesheet.onload = () => {
+    requestAnimationFrame(tick)
+  }
 }
