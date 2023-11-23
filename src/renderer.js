@@ -57,6 +57,38 @@ class Renderer {
             x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
             CELL_DIMENSIONS.width, CELL_DIMENSIONS.height
           )
+          if (y > 0 && !(gameState.level.data[y - 1][x] & OBJECT_TYPES.Wall)) {
+            this.renderContext.drawImage(
+              this.spritesheet,
+              4 * 8, 0, 8, 8,
+              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              8, 8
+            )
+          }
+          if (y < gameState.level.height - 1 && !(gameState.level.data[y + 1][x] & OBJECT_TYPES.Wall)) {
+            this.renderContext.drawImage(
+              this.spritesheet,
+              4 * 8, 2 * 8, 8, 8,
+              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              8, 8
+            )
+          }
+          if (x > 0 && !(gameState.level.data[y][x - 1] & OBJECT_TYPES.Wall)) {
+            this.renderContext.drawImage(
+              this.spritesheet,
+              4 * 8, 3 * 8, 8, 8,
+              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              8, 8
+            )
+          }
+          if (x < gameState.level.width - 1 && !(gameState.level.data[y][x + 1] & OBJECT_TYPES.Wall)) {
+            this.renderContext.drawImage(
+              this.spritesheet,
+              4 * 8, 1 * 8, 8, 8,
+              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              8, 8
+            )
+          }
         } else {
           this.renderContext.drawImage(
             this.spritesheet,

@@ -20,6 +20,9 @@ window.onload = () => {
 
     let previousTimestamp = null
 
+    const startState = gameState.serialize()
+    const undoStack = [startState]
+
     const tick = (timestamp) => {
       if (previousTimestamp != null) {
         let deltaTime = timestamp - previousTimestamp
@@ -34,9 +37,31 @@ window.onload = () => {
 
         const fps = 1000 / deltaTime
 
+        if (inputHandler.restart) {
+          const priorState = gameState.serialize()
+
+          const restoreState = undoStack[0]
+          gameState.deserialize(restoreState)
+
+          undoStack.push(priorState)
+          inputHandler.restart = false
+        }
+
+        if (inputHandler.undo) {
+          if (undoStack.length > 1) {
+            const restoreState = undoStack.pop()
+            gameState.deserialize(restoreState)
+          }
+          inputHandler.undo = false
+        }
+
         const event = updatePhysics(gameState, inputHandler, timestamp, fps)
         if (event != null) {
-          applyRules(gameState, event)
+          const priorState = gameState.serialize()
+          const anythingChanged = applyRules(gameState, event)
+          if (anythingChanged) {
+            undoStack.push(priorState)
+          }
         }
         
         renderer.render(gameState, timestamp)

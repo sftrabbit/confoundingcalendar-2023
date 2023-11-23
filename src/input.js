@@ -12,6 +12,8 @@ class InputHandler {
     this.jumpQueued = false
     this.skipFrame = false
     this.horizontalMovementStack = []
+    this.undo = false
+    this.restart = false
 
     document.addEventListener('keydown', (event) => {
       this.onKeyDown(event)
@@ -39,6 +41,12 @@ class InputHandler {
         this.horizontalMovementStack.push(MOVEMENT.Right)
       }
     }
+    if (event.key == 'z') {
+      this.undo = true
+    }
+    if (event.key == 'r') {
+      this.restart = true
+    }
     if (event.key == 'b') {
       this.skipFrame = true
     }
@@ -56,9 +64,6 @@ class InputHandler {
       if (i !== -1) {
         this.horizontalMovementStack.splice(i, 1)
       }
-    }
-    if (event.key == 'b') {
-      this.skipFrame = false
     }
   }
 

@@ -108,7 +108,10 @@ export function applyRules(gameState, event) {
 
   if (event.type === 'push' && pendingMovements.length > 0 && !pendingMovements[0].cancelled) {
     gameState.player.position.x += event.dir
+    return true
   }
+
+  return false
 }
 
 function checkForCancellations(level, pendingMovements) {
