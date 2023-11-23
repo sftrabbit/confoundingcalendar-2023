@@ -48,11 +48,20 @@ class Renderer {
           continue
         }
 
-        this.renderContext.fillStyle = cell & OBJECT_TYPES.Wall ? '#0e0e12' : '#00ff00'
-        this.renderContext.fillRect(
-          x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
-          CELL_DIMENSIONS.width, CELL_DIMENSIONS.height
-        )
+        if (cell & OBJECT_TYPES.Wall) {
+          this.renderContext.fillStyle = '#0e0e12'
+          this.renderContext.fillRect(
+            x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+            CELL_DIMENSIONS.width, CELL_DIMENSIONS.height
+          )
+        } else {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            16, 0, 8, 8,
+            x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+            8, 8
+          )
+        }
       }
     }
 
