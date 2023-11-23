@@ -50,14 +50,14 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
 
   const verticalProbe = (playerPosition, probePosition, dir) => {
     const startY = Math.floor(player.position.y + 0.5 * dir)
-    const probeY = Math.floor(probePosition.y + (dir > 0 ? 0.5 : -0.375))
+    const probeY = Math.floor(probePosition.y + 0.5 * dir)
 
-    const leftProbeX = Math.floor(probePosition.x - 0.375)
-    const rightProbeX = Math.ceil(probePosition.x + 0.375) - 1
+    const leftProbeX = Math.floor(probePosition.x - 0.5)
+    const rightProbeX = Math.ceil(probePosition.x + 0.5) - 1
 
     for (let y = startY; y != probeY + dir; y += dir) {
       if (level.hasObject({ x: leftProbeX, y: y }, OBJECT_GROUPS.Solid) || level.hasObject({ x: rightProbeX, y: y }, OBJECT_GROUPS.Solid)) {
-        return Math.floor(y - dir) + (dir > 0 ? 0.5 : 0.375)
+        return Math.floor(y - dir) + 0.5
       }
     }
 
@@ -66,11 +66,11 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
 
   const horizontalProbe = (playerPosition, probePosition, dir) => {
     const upProbe = {
-      x: Math.floor(probePosition.x + 0.375 * dir),
-      y: Math.floor(probePosition.y - 0.375)
+      x: Math.floor(probePosition.x + 0.5 * dir),
+      y: Math.floor(probePosition.y - 0.5)
     }
     const downProbe = {
-      x: Math.floor(probePosition.x + 0.375 * dir),
+      x: Math.floor(probePosition.x + 0.5 * dir),
       y: Math.ceil(probePosition.y + 0.5) - 1
     }
 
@@ -78,7 +78,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
       return null
     }
 
-    return Math.floor(upProbe.x - dir) + 0.5 + (dir * (0.5 - 0.375))
+    return Math.floor(upProbe.x - dir) + 0.5
   }
 
   const verticalCollision = verticalProbe(player.position, {
@@ -104,8 +104,18 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   }
 
   if (verticalCollision) {
-    player.position.y = verticalCollision
-    player.velocity.y = 0
+    // Leniency when colliding with ceiling/floor but there is a gap to move into
+    const dir = Math.sign(player.velocity.y)
+    if (horizontalMovement == null
+      && Math.abs((player.position.x % 1) - 0.5) < 0.2
+      && !level.hasObject({ x: playerCellPosition.x, y: playerCellPosition.y + dir }, OBJECT_GROUPS.Solid)
+      && level.hasObject({ x: playerCellPosition.x + 1, y: playerCellPosition.y + dir }, OBJECT_GROUPS.Solid)
+      && level.hasObject({ x: playerCellPosition.x - 1, y: playerCellPosition.y + dir }, OBJECT_GROUPS.Solid)) {
+      player.position.x = Math.floor(player.position.x) + 0.5
+    } else {
+      player.position.y = verticalCollision
+      player.velocity.y = 0
+    }
   }
 
   if (horizontalCollision && player.velocity.x !== 0) {
@@ -197,9 +207,23 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
 
   if (gameState.jumpTimestamp != null) {
     if ((timestamp - gameState.jumpTimestamp) < ANTICOYOTE_TIME_SECONDS * 1000) {
-      // TODO - reimplement vertical leniency (jumping up through a 1-wide gap)
-      player.velocity.y = -JUMP_VELOCITY_CELLS_PER_SECOND
-      gameState.jumpTimestamp = null
+      if (Math.abs((player.position.x % 1) - 0.5) < 0.2) {
+        if (!level.hasObject({ x: playerCellPosition.x, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
+          && level.hasObject({ x: playerCellPosition.x + 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)
+          && level.hasObject({ x: playerCellPosition.x - 1, y: playerCellPosition.y - 1 }, OBJECT_GROUPS.Solid)) {
+          player.position.x = Math.floor(player.position.x) + 0.5
+        }
+      }
+
+      let jumpUpCollision = verticalProbe(player.position, {
+        x: player.position.x,
+        y: player.position.y - JUMP_VELOCITY_CELLS_PER_SECOND / fps
+      }, -1)
+
+      if (!jumpUpCollision) {
+        player.velocity.y = -JUMP_VELOCITY_CELLS_PER_SECOND
+        gameState.jumpTimestamp = null
+      }
     } else {
       gameState.jumpTimestamp = null
     }
