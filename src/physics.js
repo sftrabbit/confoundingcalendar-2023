@@ -21,12 +21,20 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   const horizontalMovement = inputHandler.getHorizontalMovement()
 
   if (horizontalMovement === MOVEMENT.Left) {
+    if (gameState.playerStartedMovingTimestamp == null) {
+      gameState.playerStartedMovingTimestamp = timestamp
+    }
     player.velocity.x = -WALK_VELOCITY_CELLS_PER_SECOND
     gameState.playerFacing = MOVEMENT.Left
   } else if (horizontalMovement === MOVEMENT.Right) {
+    if (gameState.playerStartedMovingTimestamp == null) {
+      gameState.playerStartedMovingTimestamp = timestamp
+    }
     player.velocity.x = WALK_VELOCITY_CELLS_PER_SECOND
     gameState.playerFacing = MOVEMENT.Right
   } else {
+    gameState.playerStartedMovingTimestamp = null
+
     if (player.velocity.x > 0) {
       player.velocity.x -= FRICTION_CELLS_PER_SECOND_2
       if (player.velocity.x < 0) {
@@ -200,6 +208,12 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
       gameState.lastOnGroundTimestamp = 0
     }
     inputHandler.jumpQueued = false
+  }
+
+  if (!onGround) {
+    gameState.playerJumpingDir = Math.sign(player.velocity.y - 5)
+  } else {
+    gameState.playerJumpingDir = null
   }
 
   player.position.x += player.velocity.x / fps

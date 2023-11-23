@@ -34,7 +34,7 @@ class Renderer {
     this.spritesheet = spritesheet
   }
 
-  render (gameState) {
+  render (gameState, timestamp) {
     this.screenContext.save()
     this.renderContext.save()
 
@@ -45,10 +45,13 @@ class Renderer {
       for (let y = 0; y < gameState.level.height; y++) {
         const cell = gameState.level.data[y][x]
         if (cell === 0) {
-          continue
-        }
-
-        if (cell & OBJECT_TYPES.Wall) {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            24, 0, 8, 8,
+            x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+            8, 8
+          )
+        } else if (cell & OBJECT_TYPES.Wall) {
           this.renderContext.fillStyle = '#0e0e12'
           this.renderContext.fillRect(
             x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
@@ -66,21 +69,61 @@ class Renderer {
     }
 
     if (gameState.playerFacing === MOVEMENT.Right) {
-      this.renderContext.drawImage(
-        this.spritesheet,
-        0, 0, 8, 8,
-        Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-        Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-        8, 8
-      )
+      if (gameState.playerJumpingDir == null) {
+        if (gameState.playerStartedMovingTimestamp == null) {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            0, 0, 8, 8,
+            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+            8, 8
+          )
+        } else {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            0, 8 + ((Math.floor((timestamp - gameState.playerStartedMovingTimestamp) / 200) % 6) * 8), 8, 8,
+            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+            8, 8
+          )
+        }
+      } else {
+        this.renderContext.drawImage(
+          this.spritesheet,
+          0, 7 * 8 + (gameState.playerJumpingDir > 0 ? 8 : 0), 8, 8,
+          Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+          Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+          8, 8
+        )
+      }
     } else {
-      this.renderContext.drawImage(
-        this.spritesheet,
-        8, 0, 8, 8,
-        Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-        Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-        8, 8
-      )
+      if (gameState.playerJumpingDir == null) {
+        if (gameState.playerStartedMovingTimestamp == null) {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            8, 0, 8, 8,
+            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+            8, 8
+          )
+        } else {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            8, 8 + ((Math.floor((timestamp - gameState.playerStartedMovingTimestamp) / 200) % 6) * 8), 8, 8,
+            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+            8, 8
+          )
+        }
+      } else {
+        this.renderContext.drawImage(
+          this.spritesheet,
+          8, 7 * 8 + (gameState.playerJumpingDir > 0 ? 8 : 0), 8, 8,
+          Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
+          Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
+          8, 8
+        )
+      }
     }
     // this.renderContext.fillStyle = '#ff0000'
     // this.renderContext.beginPath()

@@ -22,6 +22,8 @@ class GameState {
     this.rightPushStartTimestamp = null
 
     this.playerFacing = MOVEMENT.Right
+    this.playerStartedMovingTimestamp = null
+    this.jumpState = null
   }
 }
 

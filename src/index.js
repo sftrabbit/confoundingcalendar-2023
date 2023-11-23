@@ -39,7 +39,7 @@ window.onload = () => {
           applyRules(gameState, event)
         }
         
-        renderer.render(gameState)
+        renderer.render(gameState, timestamp)
       }
 
       previousTimestamp = timestamp
