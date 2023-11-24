@@ -48,10 +48,8 @@ window.onload = () => {
         }
 
         if (inputHandler.undo) {
-          if (undoStack.length > 1) {
-            const restoreState = undoStack.pop()
-            gameState.deserialize(restoreState)
-          }
+          const restoreState = undoStack.length > 1 ? undoStack.pop() : undoStack[0]
+          gameState.deserialize(restoreState)
           inputHandler.undo = false
         }
 
