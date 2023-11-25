@@ -13,7 +13,8 @@ export function applyRules(gameState, event) {
     fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     objectTypes: null,
-    durationSeconds: 0.2
+    durationSeconds: 0.2,
+    type: 'push'
   }]
 
   let pendingFalls = []
@@ -188,7 +189,7 @@ export function applyRules(gameState, event) {
       }
     }
 
-    gameState.playerStartedMovingTimestamp = null
+    animations.fall = true
 
     return animations
   }

@@ -58,7 +58,7 @@ window.onload = () => {
           inputHandler.undo = false
         }
 
-        let pushHappening = false
+        gameState.pushHappening = null
 
         if (!animationHandler.hasPendingTransactions()) {
           const priorGroundPosition = gameState.lastGroundPosition
@@ -77,8 +77,8 @@ window.onload = () => {
 
             const animations = applyRules(gameState, event)
 
-            if (event.type === 'push') {
-              pushHappening = true
+            if (event.type === 'push' || event.type === 'again') {
+              gameState.pushHappening = true
             }
 
             if (animations) {
@@ -96,18 +96,30 @@ window.onload = () => {
           }
         }
 
-        if (!pushHappening) {
-          pushHappening = gameState.leftPushStartTimestamp != null || gameState.rightPushStartTimestamp != null
+        if (gameState.pushHappening == null) {
+          gameState.pushHappening = gameState.leftPushStartTimestamp != null || gameState.rightPushStartTimestamp != null
         }
 
-        const activeTransaction = animationHandler.getActiveTransaction(timestamp) || getStaticTransaction(gameState, pushHappening, timestamp)
-        const [ visuals, allFinished ] = interpolateVisuals(activeTransaction, timestamp)
+        const activeTransaction = animationHandler.getActiveTransaction(timestamp)
+        const transaction = activeTransaction || getStaticTransaction(gameState, timestamp)
+        const [ visuals, allFinished ] = interpolateVisuals(transaction, timestamp)
 
         if (allFinished) {
           animationHandler.stopTransaction()
         }
 
-        renderer.render(gameState, visuals, timestamp)
+        const horizontalMovement = inputHandler.getHorizontalMovement()
+
+        let overridePushAnimation = false
+        if (transaction.fall) {
+          overridePushAnimation = gameState.playerFacing !== horizontalMovement
+        }
+
+        if (activeTransaction == null && horizontalMovement !== gameState.playerFacing) {
+          overridePushAnimation = true
+        }
+
+        renderer.render(gameState, visuals, timestamp, overridePushAnimation)
       }
 
       previousTimestamp = timestamp
@@ -118,7 +130,7 @@ window.onload = () => {
   }
 }
 
-function getStaticTransaction(gameState, pushHappening, timestamp) {
+function getStaticTransaction(gameState, timestamp) {
   const level = gameState.level
 
   const transaction = [{
@@ -127,7 +139,7 @@ function getStaticTransaction(gameState, pushHappening, timestamp) {
     objectTypes: null,
     startTimestamp: timestamp,
     endTimestamp: Infinity,
-    type: pushHappening ? 'push' : null
+    type: gameState.pushHappening ? 'push' : null
   }]
 
   for (let y = 0; y < level.data.length; y++) {
@@ -169,6 +181,7 @@ function interpolateVisuals (activeTransaction, timestamp) {
           return fromPosition + (distance * (vector > 0))
         }
         : (fromPosition, vector, t) => fromPosition + t * vector
+
       return {
         position: {
           x: tween(animation.fromPosition.x, vector.x, t),

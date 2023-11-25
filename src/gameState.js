@@ -36,6 +36,8 @@ class GameState {
     this.lastGroundPosition = null
     this.lastGroundFacing = null
     this.wasOnGround = false
+
+    this.pushHappening = false
   }
 
   serialize (playerPosition, playerFacing) {

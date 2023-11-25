@@ -35,7 +35,7 @@ class Renderer {
     this.spritesheet = spritesheet
   }
 
-  render (gameState, visuals, timestamp) {
+  render (gameState, visuals, timestamp, overridePushAnimation) {
     this.screenContext.save()
     this.renderContext.save()
 
@@ -112,7 +112,7 @@ class Renderer {
           8, 8
         )
       } else {
-        const playerSpriteSourcePosition = getPlayerSpritePosition(gameState, timestamp, visual.type)
+        const playerSpriteSourcePosition = getPlayerSpritePosition(gameState, timestamp, visual.type, overridePushAnimation)
         this.renderContext.drawImage(
           this.spritesheet,
           playerSpriteSourcePosition[0], playerSpriteSourcePosition[1], 8, 8,
@@ -158,10 +158,10 @@ class Renderer {
   }
 }
 
-function getPlayerSpritePosition (gameState, timestamp, type) {
+function getPlayerSpritePosition (gameState, timestamp, type, overridePushAnimation) {
   const x = gameState.playerFacing === MOVEMENT.Right ? 0 : 8
   if (gameState.playerJumpingDir == null) {
-    if (gameState.playerStartedMovingTimestamp == null) {
+    if (gameState.playerStartedMovingTimestamp == null || overridePushAnimation) {
       return [x, 0]
     } else {
       let yOffset = 0

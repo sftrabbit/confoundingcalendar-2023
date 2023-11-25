@@ -199,7 +199,6 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
 
     gameState.lastOnGroundTimestamp = timestamp
   } else {
-    gameState.rightPushStartTimestamp = null
     gameState.leftPushStartTimestamp = null
   }
 
