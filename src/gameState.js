@@ -27,7 +27,9 @@ class GameState {
     this.lastOnGroundTimestamp = 0
 
     this.leftPushStartTimestamp = null
+    this.leftPushActualStartTimestamp = null
     this.rightPushStartTimestamp = null
+    this.rightPushActualStartTimestamp = null
 
     this.playerFacing = MOVEMENT.Right
     this.playerStartedMovingTimestamp = null
@@ -37,7 +39,7 @@ class GameState {
     this.lastGroundFacing = null
     this.wasOnGround = false
 
-    this.pushHappening = false
+    this.shortenPushTime = false
   }
 
   serialize (playerPosition, playerFacing) {

@@ -164,7 +164,10 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     if (rightCollision != null && horizontalMovement == MOVEMENT.Right) {
       if (gameState.rightPushStartTimestamp == null) {
         gameState.rightPushStartTimestamp = timestamp
-      } else if ((timestamp - gameState.rightPushStartTimestamp) >= PUSH_HOLD_TIME_SECONDS * 1000) {
+        if (gameState.rightPushActualStartTimestamp == null) {
+          gameState.rightPushActualStartTimestamp = timestamp
+        }
+      } else if ((timestamp - gameState.rightPushStartTimestamp) >= (gameState.shortenPushTime ? 0 : PUSH_HOLD_TIME_SECONDS * 1000)) {
         event = {
           type: 'push',
           position: {
@@ -182,7 +185,10 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     if (leftCollision != null && horizontalMovement == MOVEMENT.Left) {
       if (gameState.leftPushStartTimestamp == null) {
         gameState.leftPushStartTimestamp = timestamp
-      } else if ((timestamp - gameState.leftPushStartTimestamp) >= PUSH_HOLD_TIME_SECONDS * 1000) {
+        if (gameState.leftPushActualStartTimestamp == null) {
+          gameState.leftPushActualStartTimestamp = timestamp
+        }
+      } else if ((timestamp - gameState.leftPushStartTimestamp) >= (gameState.shortenPushTime ? 0 : PUSH_HOLD_TIME_SECONDS * 1000)) {
         event = {
           type: 'push',
           position: {

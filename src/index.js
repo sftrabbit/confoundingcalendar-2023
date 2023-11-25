@@ -78,6 +78,14 @@ window.onload = () => {
             const animations = applyRules(gameState, event)
 
             if (event.type === 'push' || event.type === 'again') {
+              if (event.type === 'push') {
+                gameState.shortenPushTime = false
+
+                if (animations) {
+                  gameState.rightPushStartTimestamp = null
+                  gameState.leftPushStartTimestamp = null
+                }
+              }
               gameState.pushHappening = true
             }
 
@@ -97,7 +105,9 @@ window.onload = () => {
         }
 
         if (gameState.pushHappening == null) {
-          gameState.pushHappening = gameState.leftPushStartTimestamp != null || gameState.rightPushStartTimestamp != null
+          gameState.pushHappening =
+            (gameState.leftPushStartTimestamp != null && (timestamp - gameState.leftPushActualStartTimestamp) > 150) ||
+            (gameState.rightPushStartTimestamp != null && (timestamp - gameState.rightPushActualStartTimestamp) > 150)
         }
 
         const activeTransaction = animationHandler.getActiveTransaction(timestamp)
@@ -109,14 +119,20 @@ window.onload = () => {
         }
 
         const horizontalMovement = inputHandler.getHorizontalMovement()
+        if (horizontalMovement == null) {
+          gameState.shortenPushTime = false
+        }
 
         let overridePushAnimation = false
         if (transaction.fall) {
           overridePushAnimation = gameState.playerFacing !== horizontalMovement
+          gameState.shortenPushTime = true
         }
 
         if (activeTransaction == null && horizontalMovement !== gameState.playerFacing) {
           overridePushAnimation = true
+          gameState.leftPushActualStartTimestamp = null
+          gameState.rightPushActualStartTimestamp = null
         }
 
         renderer.render(gameState, visuals, timestamp, overridePushAnimation)
