@@ -188,6 +188,8 @@ export function applyRules(gameState, event) {
       }
     }
 
+    gameState.playerStartedMovingTimestamp = null
+
     return animations
   }
 
