@@ -8,6 +8,22 @@ const MOVEMENT_CAUSES = {
 export function applyRules(gameState, event) {
   const level = gameState.level
 
+  const animations = []
+  for (let y = 0; y < level.data.length; y++) {
+    for (let x = 0; x < level.data[0].length; x++) {
+      if ((level.data[y][x] & OBJECT_GROUPS.Pushable) === 0) {
+        continue
+      }
+
+      animations.push({
+        fromPosition: { x, y },
+        toPosition: { x, y },
+        objectTypes: level.data[y][x],
+        durationSeconds: 0.2
+      })
+    }
+  }
+
   let pendingMovements = []
 
   if (event.type === 'push') {
@@ -104,14 +120,20 @@ export function applyRules(gameState, event) {
     }
 
     level.addObject(toPosition, OBJECT_TYPES.Box)
+
+    for (const animation of animations) {
+      if (animation.fromPosition.x === movement.position.x && animation.fromPosition.y === movement.position.y) {
+        animation.toPosition = toPosition
+      }
+    }
   }
 
   if (event.type === 'push' && pendingMovements.length > 0 && !pendingMovements[0].cancelled) {
     gameState.player.position.x += event.dir
-    return true
+    return animations
   }
 
-  return false
+  return null
 }
 
 function checkForCancellations(level, pendingMovements) {

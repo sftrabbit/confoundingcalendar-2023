@@ -10,7 +10,7 @@ const CLEAR_COLOR = '#0e0e12'
 const BACKGROUND_COLOR = '#a6a6bf'
 
 class Renderer {
-  constructor (containerElement, gameState, spritesheet) {
+  constructor (containerElement, gameState, animationHandler, spritesheet) {
     this.screenCanvas = containerElement.querySelector('canvas')
     this.screenContext = this.screenCanvas.getContext('2d')
 
@@ -26,15 +26,16 @@ class Renderer {
       const renderContext = this.renderCanvas.getContext('2d')
       renderContext.imageSmoothingEnabled = false
 
-      this.render(gameState)
+      // this.render(gameState)
     })
 
     resizeObserver.observe(this.screenCanvas)
 
+    this.animationHandler = animationHandler
     this.spritesheet = spritesheet
   }
 
-  render (gameState, timestamp) {
+  render (gameState, visuals, timestamp) {
     this.screenContext.save()
     this.renderContext.save()
 
@@ -44,24 +45,21 @@ class Renderer {
     for (let x = 0; x < gameState.level.width; x++) {
       for (let y = 0; y < gameState.level.height; y++) {
         const cell = gameState.level.data[y][x]
-        if (cell === 0) {
-          this.renderContext.drawImage(
-            this.spritesheet,
-            24, 0, 8, 8,
-            x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
-            8, 8
-          )
-        } else if (cell & OBJECT_TYPES.Wall) {
+        const drawPosition = {
+          x: x * CELL_DIMENSIONS.width,
+          y: y * CELL_DIMENSIONS.height
+        }
+        if (cell & OBJECT_TYPES.Wall) {
           this.renderContext.fillStyle = '#0e0e12'
           this.renderContext.fillRect(
-            x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+            drawPosition.x, drawPosition.y,
             CELL_DIMENSIONS.width, CELL_DIMENSIONS.height
           )
           if (y > 0 && !(gameState.level.data[y - 1][x] & OBJECT_TYPES.Wall)) {
             this.renderContext.drawImage(
               this.spritesheet,
               4 * 8, 0, 8, 8,
-              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              drawPosition.x, drawPosition.y,
               8, 8
             )
           }
@@ -69,7 +67,7 @@ class Renderer {
             this.renderContext.drawImage(
               this.spritesheet,
               4 * 8, 2 * 8, 8, 8,
-              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              drawPosition.x, drawPosition.y,
               8, 8
             )
           }
@@ -77,7 +75,7 @@ class Renderer {
             this.renderContext.drawImage(
               this.spritesheet,
               4 * 8, 3 * 8, 8, 8,
-              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              drawPosition.x, drawPosition.y,
               8, 8
             )
           }
@@ -85,19 +83,33 @@ class Renderer {
             this.renderContext.drawImage(
               this.spritesheet,
               4 * 8, 1 * 8, 8, 8,
-              x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+              drawPosition.x, drawPosition.y,
               8, 8
             )
           }
         } else {
           this.renderContext.drawImage(
             this.spritesheet,
-            16, 0, 8, 8,
-            x * CELL_DIMENSIONS.width, y * CELL_DIMENSIONS.height,
+            24, 0, 8, 8,
+            drawPosition.x, drawPosition.y,
             8, 8
           )
         }
       }
+    }
+
+    for (const visual of visuals) {
+      const drawPosition = {
+        x: Math.floor(visual.position.x * CELL_DIMENSIONS.width),
+        y: Math.floor(visual.position.y * CELL_DIMENSIONS.height)
+      }
+
+      this.renderContext.drawImage(
+        this.spritesheet,
+        16, 0, 8, 8,
+        drawPosition.x, drawPosition.y,
+        8, 8
+      )
     }
 
     if (gameState.playerFacing === MOVEMENT.Right) {
@@ -206,6 +218,14 @@ function updateCanvasScaling(screenContext) {
   screenCanvas.height = screenCanvas.clientHeight
 
   screenContext.imageSmoothingEnabled = false
+}
+
+function getDynamicVisuals(gameState, activeTransaction, timestamp) {
+  let dynamicVisuals = []
+
+  
+
+  return dynamicVisuals
 }
 
 export default Renderer

@@ -2,8 +2,9 @@ import InputHandler from './input'
 import GameState from './gameState'
 import { updatePhysics } from './physics'
 import Renderer from './renderer'
-import Level from './level'
+import Level, { OBJECT_GROUPS } from './level'
 import { applyRules } from './rules'
+import AnimationHandler from './animation'
 
 window.onload = () => {
   const level = new Level()
@@ -13,8 +14,10 @@ window.onload = () => {
   spritesheet.src = 'spritesheet.png'
 
   spritesheet.onload = () => {
+    const animationHandler = new AnimationHandler()
+
     const containerElement = document.getElementById('container')
-    const renderer = new Renderer(containerElement, gameState, spritesheet)
+    const renderer = new Renderer(containerElement, gameState, animationHandler, spritesheet)
 
     const inputHandler = new InputHandler()
 
@@ -53,16 +56,33 @@ window.onload = () => {
           inputHandler.undo = false
         }
 
-        const event = updatePhysics(gameState, inputHandler, timestamp, fps)
-        if (event != null) {
-          const priorState = gameState.serialize()
-          const anythingChanged = applyRules(gameState, event)
-          if (anythingChanged) {
-            undoStack.push(priorState)
+        if (!animationHandler.hasPendingTransactions()) {
+          const priorGroundPosition = gameState.lastGroundPosition
+          const priorGroundFacing = gameState.lastGroundFacing
+
+          let { event, physicsChanged } = updatePhysics(gameState, inputHandler, timestamp, fps)
+
+          if (event != null) {
+            const priorState = gameState.serialize()
+
+            const animations = applyRules(gameState, event)
+
+            if (animations) {
+              animationHandler.queueTransaction(animations)
+              undoStack.push(priorState)
+            }
+          } else {
+            if (physicsChanged) {
+              const restoreState = gameState.serialize(priorGroundPosition, priorGroundFacing)
+              undoStack.push(restoreState)
+            }
           }
         }
-        
-        renderer.render(gameState, timestamp)
+
+        const activeTransaction = animationHandler.getActiveTransaction(timestamp) || getStaticTransaction(gameState, timestamp)
+        const visuals = interpolateVisuals(activeTransaction, timestamp)
+
+        renderer.render(gameState, visuals, timestamp)
       }
 
       previousTimestamp = timestamp
@@ -71,4 +91,44 @@ window.onload = () => {
 
     requestAnimationFrame(tick)
   }
+}
+
+function getStaticTransaction(gameState, timestamp) {
+  const level = gameState.level
+
+  const transaction = []
+  for (let y = 0; y < level.data.length; y++) {
+    for (let x = 0; x < level.data[0].length; x++) {
+      if ((level.data[y][x] & OBJECT_GROUPS.Pushable) === 0) {
+        continue
+      }
+
+      transaction.push({
+        fromPosition: { x, y },
+        toPosition: { x, y },
+        objectTypes: level.data[y][x],
+        startTimestamp: timestamp,
+        endTimestamp: Infinity
+      })
+    }
+  }
+
+  return transaction
+}
+
+function interpolateVisuals (activeTransaction, timestamp) {
+  return activeTransaction.map((animation) => {
+    const t = (timestamp - animation.startTimestamp) / (animation.endTimestamp - animation.startTimestamp)
+    const vector = {
+      x: animation.toPosition.x - animation.fromPosition.x,
+      y: animation.toPosition.y - animation.fromPosition.y
+    }
+    return {
+      position: {
+        x: animation.fromPosition.x + t * vector.x,
+        y: animation.fromPosition.y + t * vector.y
+      },
+      objectTypes: animation.objectTypes
+    }
+  })
 }

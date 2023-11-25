@@ -14,6 +14,7 @@ const PUSH_HOLD_TIME_SECONDS = 0.3
 
 export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   let event = null
+  let physicsChanged = false
 
   const player = gameState.player
   const level = gameState.level
@@ -212,8 +213,18 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
 
   if (!onGround) {
     gameState.playerJumpingDir = Math.sign(player.velocity.y - 5)
+    gameState.wasOnGround = false
   } else {
+    if (!gameState.wasOnGround && gameState.lastGroundPosition != null && Math.floor(player.position.y) !== Math.floor(gameState.lastGroundPosition.y)) {
+      physicsChanged = true
+    }
     gameState.playerJumpingDir = null
+    gameState.lastGroundPosition = {
+      x: player.position.x,
+      y: player.position.y
+    }
+    gameState.lastGroundFacing = gameState.playerFacing
+    gameState.wasOnGround = true
   }
 
   player.position.x += player.velocity.x / fps
@@ -243,5 +254,5 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     }
   }
 
-  return event
+  return { event, physicsChanged }
 }

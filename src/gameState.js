@@ -32,13 +32,24 @@ class GameState {
     this.playerFacing = MOVEMENT.Right
     this.playerStartedMovingTimestamp = null
     this.playerJumpingDir = null
+
+    this.lastGroundPosition = null
+    this.lastGroundFacing = null
+    this.wasOnGround = false
   }
 
-  serialize () {
+  serialize (playerPosition, playerFacing) {
+    if (playerPosition == null) {
+      playerPosition = this.player.position
+    }
+    if (playerFacing == null) {
+      playerFacing = this.playerFacing
+    }
+
     return [
-      this.player.position.x,
-      this.player.position.y,
-      this.playerFacing,
+      playerPosition.x,
+      playerPosition.y,
+      playerFacing,
       ...this.level.data.reduce((blockPositions, row, y) => {
         const rowBlockPositions = row.reduce((rowBlockPositions, cell, x) => {
           if (!(cell & OBJECT_TYPES.Box)) {
