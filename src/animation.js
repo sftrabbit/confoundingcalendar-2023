@@ -28,6 +28,11 @@ class AnimationHandler {
     }
     return this.pendingTransactions[0]
   }
+
+  stopTransaction () {
+    this.pendingTransactions.shift()
+    this.transactionActive = false
+  }
 }
 
 export default AnimationHandler

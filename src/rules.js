@@ -8,7 +8,13 @@ const MOVEMENT_CAUSES = {
 export function applyRules(gameState, event) {
   const level = gameState.level
 
-  const animations = []
+  const animations = [{
+    fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
+    toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
+    objectTypes: null,
+    durationSeconds: 0.2
+  }]
+
   for (let y = 0; y < level.data.length; y++) {
     for (let x = 0; x < level.data[0].length; x++) {
       if ((level.data[y][x] & OBJECT_GROUPS.Pushable) === 0) {
@@ -129,7 +135,12 @@ export function applyRules(gameState, event) {
   }
 
   if (event.type === 'push' && pendingMovements.length > 0 && !pendingMovements[0].cancelled) {
-    gameState.player.position.x += event.dir
+    animations[0].toPosition = {
+      x: gameState.player.position.x + event.dir,
+      y: gameState.player.position.y
+    }
+    animations[0].type = 'push'
+    gameState.player.position.x = animations[0].toPosition.x
     return animations
   }
 

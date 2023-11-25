@@ -104,71 +104,25 @@ class Renderer {
         y: Math.floor(visual.position.y * CELL_DIMENSIONS.height)
       }
 
-      this.renderContext.drawImage(
-        this.spritesheet,
-        16, 0, 8, 8,
-        drawPosition.x, drawPosition.y,
-        8, 8
-      )
+      if (visual.objectTypes & OBJECT_TYPES.Box) {
+        this.renderContext.drawImage(
+          this.spritesheet,
+          16, 0, 8, 8,
+          drawPosition.x, drawPosition.y,
+          8, 8
+        )
+      } else {
+        const playerSpriteSourcePosition = getPlayerSpritePosition(gameState, timestamp, visual.type)
+        this.renderContext.drawImage(
+          this.spritesheet,
+          playerSpriteSourcePosition[0], playerSpriteSourcePosition[1], 8, 8,
+          drawPosition.x - (CELL_DIMENSIONS.width / 2), drawPosition.y - (CELL_DIMENSIONS.height / 2),
+          8, 8
+        )
+      }
     }
 
-    if (gameState.playerFacing === MOVEMENT.Right) {
-      if (gameState.playerJumpingDir == null) {
-        if (gameState.playerStartedMovingTimestamp == null) {
-          this.renderContext.drawImage(
-            this.spritesheet,
-            0, 0, 8, 8,
-            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-            8, 8
-          )
-        } else {
-          this.renderContext.drawImage(
-            this.spritesheet,
-            0, 8 + ((Math.floor((timestamp - gameState.playerStartedMovingTimestamp) / 200) % 6) * 8), 8, 8,
-            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-            8, 8
-          )
-        }
-      } else {
-        this.renderContext.drawImage(
-          this.spritesheet,
-          0, 7 * 8 + (gameState.playerJumpingDir > 0 ? 8 : 0), 8, 8,
-          Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-          Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-          8, 8
-        )
-      }
-    } else {
-      if (gameState.playerJumpingDir == null) {
-        if (gameState.playerStartedMovingTimestamp == null) {
-          this.renderContext.drawImage(
-            this.spritesheet,
-            8, 0, 8, 8,
-            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-            8, 8
-          )
-        } else {
-          this.renderContext.drawImage(
-            this.spritesheet,
-            8, 8 + ((Math.floor((timestamp - gameState.playerStartedMovingTimestamp) / 200) % 6) * 8), 8, 8,
-            Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-            Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-            8, 8
-          )
-        }
-      } else {
-        this.renderContext.drawImage(
-          this.spritesheet,
-          8, 7 * 8 + (gameState.playerJumpingDir > 0 ? 8 : 0), 8, 8,
-          Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width) - 4,
-          Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height) - 4,
-          8, 8
-        )
-      }
-    }
+
     // this.renderContext.fillStyle = '#ff0000'
     // this.renderContext.beginPath()
     // this.renderContext.arc(
@@ -204,6 +158,23 @@ class Renderer {
   }
 }
 
+function getPlayerSpritePosition (gameState, timestamp, type) {
+  const x = gameState.playerFacing === MOVEMENT.Right ? 0 : 8
+  if (gameState.playerJumpingDir == null) {
+    if (gameState.playerStartedMovingTimestamp == null) {
+      return [x, 0]
+    } else {
+      let yOffset = 0
+      if (type === 'push') {
+        yOffset = 8 * 8
+      }
+      return [x, 8 + ((Math.floor((timestamp - gameState.playerStartedMovingTimestamp) / 200) % 6) * 8) + yOffset]
+    }
+  } else {
+    return [x, 7 * 8 + (gameState.playerJumpingDir > 0 ? 8 : 0)]
+  }
+}
+
 function clearCanvas (context, color) {
   context.save()
   context.fillStyle = color
@@ -218,14 +189,6 @@ function updateCanvasScaling(screenContext) {
   screenCanvas.height = screenCanvas.clientHeight
 
   screenContext.imageSmoothingEnabled = false
-}
-
-function getDynamicVisuals(gameState, activeTransaction, timestamp) {
-  let dynamicVisuals = []
-
-  
-
-  return dynamicVisuals
 }
 
 export default Renderer

@@ -56,6 +56,8 @@ window.onload = () => {
           inputHandler.undo = false
         }
 
+        let pushHappening = false
+
         if (!animationHandler.hasPendingTransactions()) {
           const priorGroundPosition = gameState.lastGroundPosition
           const priorGroundFacing = gameState.lastGroundFacing
@@ -66,6 +68,10 @@ window.onload = () => {
             const priorState = gameState.serialize()
 
             const animations = applyRules(gameState, event)
+
+            if (event.type === 'push') {
+              pushHappening = true
+            }
 
             if (animations) {
               animationHandler.queueTransaction(animations)
@@ -79,8 +85,16 @@ window.onload = () => {
           }
         }
 
-        const activeTransaction = animationHandler.getActiveTransaction(timestamp) || getStaticTransaction(gameState, timestamp)
-        const visuals = interpolateVisuals(activeTransaction, timestamp)
+        if (!pushHappening) {
+          pushHappening = gameState.leftPushStartTimestamp != null || gameState.rightPushStartTimestamp != null
+        }
+
+        const activeTransaction = animationHandler.getActiveTransaction(timestamp) || getStaticTransaction(gameState, pushHappening, timestamp)
+        const [ visuals, allFinished ] = interpolateVisuals(activeTransaction, timestamp)
+
+        if (allFinished) {
+          animationHandler.stopTransaction()
+        }
 
         renderer.render(gameState, visuals, timestamp)
       }
@@ -93,10 +107,18 @@ window.onload = () => {
   }
 }
 
-function getStaticTransaction(gameState, timestamp) {
+function getStaticTransaction(gameState, pushHappening, timestamp) {
   const level = gameState.level
 
-  const transaction = []
+  const transaction = [{
+    fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
+    toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
+    objectTypes: null,
+    startTimestamp: timestamp,
+    endTimestamp: Infinity,
+    type: pushHappening ? 'push' : null
+  }]
+
   for (let y = 0; y < level.data.length; y++) {
     for (let x = 0; x < level.data[0].length; x++) {
       if ((level.data[y][x] & OBJECT_GROUPS.Pushable) === 0) {
@@ -117,18 +139,27 @@ function getStaticTransaction(gameState, timestamp) {
 }
 
 function interpolateVisuals (activeTransaction, timestamp) {
-  return activeTransaction.map((animation) => {
-    const t = (timestamp - animation.startTimestamp) / (animation.endTimestamp - animation.startTimestamp)
-    const vector = {
-      x: animation.toPosition.x - animation.fromPosition.x,
-      y: animation.toPosition.y - animation.fromPosition.y
-    }
-    return {
-      position: {
-        x: animation.fromPosition.x + t * vector.x,
-        y: animation.fromPosition.y + t * vector.y
-      },
-      objectTypes: animation.objectTypes
-    }
-  })
+  let allFinished = true
+
+  return [
+    activeTransaction.map((animation) => {
+      const t = Math.min(1, (timestamp - animation.startTimestamp) / (animation.endTimestamp - animation.startTimestamp))
+      const vector = {
+        x: animation.toPosition.x - animation.fromPosition.x,
+        y: animation.toPosition.y - animation.fromPosition.y
+      }
+      if (t < 1) {
+        allFinished = false
+      }
+      return {
+        position: {
+          x: animation.fromPosition.x + t * vector.x,
+          y: animation.fromPosition.y + t * vector.y
+        },
+        objectTypes: animation.objectTypes,
+        type: animation.type
+      }
+    }),
+    allFinished
+  ]
 }
