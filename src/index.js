@@ -26,6 +26,8 @@ window.onload = () => {
     const startState = gameState.serialize()
     const undoStack = [startState]
 
+    let nextFrameEvent = null
+
     const tick = (timestamp) => {
       if (previousTimestamp != null) {
         let deltaTime = timestamp - previousTimestamp
@@ -62,7 +64,13 @@ window.onload = () => {
           const priorGroundPosition = gameState.lastGroundPosition
           const priorGroundFacing = gameState.lastGroundFacing
 
-          let { event, physicsChanged } = updatePhysics(gameState, inputHandler, timestamp, fps)
+          let { event, physicsChanged } = nextFrameEvent == null
+            ? updatePhysics(gameState, inputHandler, timestamp, fps)
+            : { event: nextFrameEvent, physicsChanged: false }
+
+          if (nextFrameEvent !== null) {
+            nextFrameEvent = null
+          }
 
           if (event != null) {
             const priorState = gameState.serialize()
@@ -74,8 +82,11 @@ window.onload = () => {
             }
 
             if (animations) {
+              nextFrameEvent = { type: 'again' }
               animationHandler.queueTransaction(animations)
-              undoStack.push(priorState)
+              if (event.type !== 'again') {
+                undoStack.push(priorState)
+              }
             }
           } else {
             if (physicsChanged) {

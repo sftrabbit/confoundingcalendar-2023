@@ -15,9 +15,12 @@ export function applyRules(gameState, event) {
     durationSeconds: 0.2
   }]
 
+  let pendingFalls = []
+  let falls = []
+
   for (let y = 0; y < level.data.length; y++) {
     for (let x = 0; x < level.data[0].length; x++) {
-      if ((level.data[y][x] & OBJECT_GROUPS.Pushable) === 0) {
+      if ((level.data[y][x] & OBJECT_TYPES.Box) === 0) {
         continue
       }
 
@@ -27,6 +30,38 @@ export function applyRules(gameState, event) {
         objectTypes: level.data[y][x],
         durationSeconds: 0.2
       })
+
+      if ((level.data[y + 1][x] & OBJECT_GROUPS.Solid) === 0) {
+        pendingFalls.push({
+          position: { x, y }
+        })
+      }
+    }
+  }
+
+  for (const pendingFall of pendingFalls) {
+    let fallDistance = 0
+    while ((level.data[pendingFall.position.y + fallDistance + 1][pendingFall.position.x] & OBJECT_GROUPS.Solid) === 0) {
+      fallDistance += 1
+    }
+
+    let risen = 0
+
+    while ((level.data[pendingFall.position.y - risen][pendingFall.position.x] & OBJECT_TYPES.Box) !== 0) {
+      const fromPosition = {
+        x: pendingFall.position.x,
+        y: pendingFall.position.y - risen
+      }
+      const toPosition = {
+        x: pendingFall.position.x,
+        y: pendingFall.position.y - risen + fallDistance
+      }
+      falls.push({
+        fromPosition,
+        toPosition,
+        objectTypes: level.data[fromPosition.y][fromPosition.x],
+      })
+      risen += 1
     }
   }
 
@@ -38,7 +73,7 @@ export function applyRules(gameState, event) {
       y: event.position.y
     }
 
-    if (level.hasObject(pushedPosition, OBJECT_GROUPS.Pushable)) {
+    if (level.hasObject(pushedPosition, OBJECT_TYPES.Box)) {
       pendingMovements.push({
         position: pushedPosition,
         dir: event.dir,
@@ -132,6 +167,24 @@ export function applyRules(gameState, event) {
         animation.toPosition = toPosition
       }
     }
+  }
+
+  if (falls.length > 0) {
+    for (const fall of falls) {
+      level.removeObject(fall.fromPosition, OBJECT_TYPES.Box)
+    }
+
+    for (const fall of falls) {
+      level.addObject(fall.toPosition, OBJECT_TYPES.Box)
+
+      for (const animation of animations) {
+        if (animation.fromPosition.x === fall.fromPosition.x && animation.fromPosition.y === fall.fromPosition.y) {
+          animation.toPosition = fall.toPosition
+        }
+      }
+    }
+
+    return animations
   }
 
   if (event.type === 'push' && pendingMovements.length > 0 && !pendingMovements[0].cancelled) {
