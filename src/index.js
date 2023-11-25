@@ -1,6 +1,6 @@
 import InputHandler from './input'
 import GameState from './gameState'
-import { updatePhysics } from './physics'
+import { updatePhysics, GRAVITY_CELLS_PER_SECOND_2 } from './physics'
 import Renderer from './renderer'
 import Level, { OBJECT_GROUPS } from './level'
 import { applyRules } from './rules'
@@ -162,10 +162,17 @@ function interpolateVisuals (activeTransaction, timestamp) {
       if (t < 1) {
         allFinished = false
       }
+      const tween = animation.tween === 'gravity'
+        ? (fromPosition, vector, t) => {
+          const timePassed = t * animation.durationSeconds
+          const distance = 0.5 * GRAVITY_CELLS_PER_SECOND_2 * timePassed * timePassed
+          return fromPosition + (distance * (vector > 0))
+        }
+        : (fromPosition, vector, t) => fromPosition + t * vector
       return {
         position: {
-          x: animation.fromPosition.x + t * vector.x,
-          y: animation.fromPosition.y + t * vector.y
+          x: tween(animation.fromPosition.x, vector.x, t),
+          y: tween(animation.fromPosition.y, vector.y, t)
         },
         objectTypes: animation.objectTypes,
         type: animation.type

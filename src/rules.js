@@ -1,4 +1,5 @@
 import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
+import { GRAVITY_CELLS_PER_SECOND_2 } from './physics'
 
 const MOVEMENT_CAUSES = {
   Push: 0,
@@ -180,6 +181,9 @@ export function applyRules(gameState, event) {
       for (const animation of animations) {
         if (animation.fromPosition.x === fall.fromPosition.x && animation.fromPosition.y === fall.fromPosition.y) {
           animation.toPosition = fall.toPosition
+          const fallDistance = animation.toPosition.y - animation.fromPosition.y
+          animation.durationSeconds = Math.sqrt((2 * fallDistance) / GRAVITY_CELLS_PER_SECOND_2)
+          animation.tween = 'gravity'
         }
       }
     }
