@@ -166,6 +166,12 @@ function getPlayerSpritePosition (gameState, timestamp, type, overridePushAnimat
     } else {
       let yOffset = 0
       if (type === 'push') {
+        const halfPush =
+          (gameState.leftPushStartTimestamp != null && (timestamp - gameState.leftPushActualStartTimestamp) <= 225) ||
+          (gameState.rightPushStartTimestamp != null && (timestamp - gameState.rightPushActualStartTimestamp) <= 255)
+        if (halfPush) {
+          return [x, 8 * 15]
+        }
         yOffset = 8 * 8
       }
       return [x, 8 + ((Math.floor((timestamp - gameState.playerStartedMovingTimestamp) / 200) % 6) * 8) + yOffset]

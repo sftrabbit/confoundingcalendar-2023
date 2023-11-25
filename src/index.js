@@ -1,8 +1,8 @@
-import InputHandler from './input'
+import InputHandler, { MOVEMENT } from './input'
 import GameState from './gameState'
 import { updatePhysics, GRAVITY_CELLS_PER_SECOND_2 } from './physics'
 import Renderer from './renderer'
-import Level, { OBJECT_GROUPS } from './level'
+import Level, { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 import { applyRules } from './rules'
 import AnimationHandler from './animation'
 
@@ -127,6 +127,28 @@ window.onload = () => {
         if (transaction.fall) {
           overridePushAnimation = gameState.playerFacing !== horizontalMovement
           gameState.shortenPushTime = true
+
+          if (!overridePushAnimation) {
+            const pushedPosition = {
+              x: Math.floor(gameState.player.position.x + (horizontalMovement === MOVEMENT.Right ? 1 : -1)),
+              y: Math.floor(gameState.player.position.y)
+            }
+
+            if (!(gameState.level.data[pushedPosition.y][pushedPosition.x] & OBJECT_GROUPS.Solid)) {
+              overridePushAnimation = true
+            }
+          }
+        }
+
+        if (gameState.pushHappening) {
+          const pushedPosition = {
+            x: Math.floor(gameState.player.position.x + (horizontalMovement === MOVEMENT.Right ? 1 : -1)),
+            y: Math.floor(gameState.player.position.y)
+          }
+
+          if (!(gameState.level.data[pushedPosition.y][pushedPosition.x] & OBJECT_GROUPS.Solid)) {
+            overridePushAnimation = true
+          }
         }
 
         if (activeTransaction == null && horizontalMovement !== gameState.playerFacing) {
