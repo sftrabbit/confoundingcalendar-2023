@@ -33,6 +33,11 @@ class AnimationHandler {
     this.pendingTransactions.shift()
     this.transactionActive = false
   }
+
+  clear () {
+    this.pendingTransactions = []
+    this.transactionActive = false
+  }
 }
 
 export default AnimationHandler
