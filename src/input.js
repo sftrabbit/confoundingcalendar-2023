@@ -12,6 +12,7 @@ class InputHandler {
     this.jumpQueued = false
     this.skipFrame = false
     this.horizontalMovementStack = []
+    this.verticalMovementStack = []
     this.undo = false
     this.restart = false
     this.directionalMovement = null
@@ -31,6 +32,9 @@ class InputHandler {
 
     if (event.key == 'ArrowUp') {
       this.jumpQueued = true
+      if (this.verticalMovementStack.indexOf(MOVEMENT.Up) === -1) {
+        this.verticalMovementStack.push(MOVEMENT.Up)
+      }
       this.directionalMovement = MOVEMENT.Up
     }
     if (event.key == 'ArrowLeft') {
@@ -46,6 +50,9 @@ class InputHandler {
       this.directionalMovement = MOVEMENT.Right
     }
     if (event.key == 'ArrowDown') {
+      if (this.verticalMovementStack.indexOf(MOVEMENT.Down) === -1) {
+        this.verticalMovementStack.push(MOVEMENT.Down)
+      }
       this.directionalMovement = MOVEMENT.Down
     }
     if (event.key == 'z') {
@@ -60,6 +67,12 @@ class InputHandler {
   }
 
   onKeyUp (event) {
+    if (event.key == 'ArrowUp') {
+      const i = this.verticalMovementStack.indexOf(MOVEMENT.Up)
+      if (i !== -1) {
+        this.verticalMovementStack.splice(i, 1)
+      }
+    }
     if (event.key == 'ArrowLeft') {
       const i = this.horizontalMovementStack.indexOf(MOVEMENT.Left)
       if (i !== -1) {
@@ -72,6 +85,12 @@ class InputHandler {
         this.horizontalMovementStack.splice(i, 1)
       }
     }
+    if (event.key == 'ArrowDown') {
+      const i = this.verticalMovementStack.indexOf(MOVEMENT.Down)
+      if (i !== -1) {
+        this.verticalMovementStack.splice(i, 1)
+      }
+    }
   }
 
   getHorizontalMovement () {
@@ -80,6 +99,14 @@ class InputHandler {
     }
 
     return this.horizontalMovementStack[this.horizontalMovementStack.length - 1]
+  }
+
+  getVerticalMovement () {
+    if (this.verticalMovementStack.length === 0) {
+      return null
+    }
+
+    return this.verticalMovementStack[this.verticalMovementStack.length - 1]
   }
 }
 

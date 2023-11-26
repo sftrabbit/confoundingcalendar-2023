@@ -141,16 +141,16 @@ export function applyRules(gameState, event) {
 
   let pendingMovements = []
 
-  if (event.type === 'push') {
+  if (event.type === 'push' && (event.dir === MOVEMENT.Right || event.dir === MOVEMENT.Left)) {
     const pushedPosition = {
-      x: event.position.x + event.dir,
+      x: event.position.x + (event.dir === MOVEMENT.Right ? 1 : -1),
       y: event.position.y
     }
 
     if (level.hasObject(pushedPosition, OBJECT_TYPES.Box)) {
       pendingMovements.push({
         position: pushedPosition,
-        dir: event.dir,
+        dir: event.dir === MOVEMENT.Right ? 1 : -1,
         cancelled: null,
         cause: MOVEMENT_CAUSES.Push
       })
@@ -302,9 +302,25 @@ export function applyRules(gameState, event) {
     return [null, animations]
   }
 
+  if (event.type === 'push') {
+    const pushedPosition = {
+      x: event.position.x + (event.dir === MOVEMENT.Right ? 1 : (event.dir === MOVEMENT.Left ? -1 : 0)),
+      y: event.position.y + (event.dir === MOVEMENT.Down ? 1 : (event.dir === MOVEMENT.Up ? -1 : 0))
+    }
+    if ((pendingMovements.length > 0 && pendingMovements[0].cancelled) || (pendingMovements.length === 0 && level.hasObject(pushedPosition, OBJECT_GROUPS.Solid))) {
+      if (level.hasObject(pushedPosition, OPPOSITE_MOVEMENTS[event.dir] << 4)) {
+        gameState.plant.position.x = pushedPosition.x
+        gameState.plant.position.y = pushedPosition.y
+        gameState.isPlant = true
+        gameState.plantMovementFrom = OPPOSITE_MOVEMENTS[event.dir]
+        return [{ type: 'again' }, null]
+      }
+    }
+  }
+
   if (event.type === 'push' && pendingMovements.length > 0 && !pendingMovements[0].cancelled) {
     animations[0].toPosition = {
-      x: gameState.player.position.x + event.dir,
+      x: gameState.player.position.x + (event.dir === MOVEMENT.Right ? 1 : -1),
       y: gameState.player.position.y
     }
     animations[0].type = 'push'

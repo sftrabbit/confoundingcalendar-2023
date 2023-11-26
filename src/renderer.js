@@ -154,6 +154,14 @@ class Renderer {
           drawPosition.x - (CELL_DIMENSIONS.width / 2), drawPosition.y - (CELL_DIMENSIONS.height / 2),
           8, 8
         )
+        if (playerSpriteSourcePosition[1] === 8 * CELL_DIMENSIONS.height) {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            playerSpriteSourcePosition[0], 24 * CELL_DIMENSIONS.height, 8, 8,
+            drawPosition.x - (CELL_DIMENSIONS.width / 2), drawPosition.y - (CELL_DIMENSIONS.height / 2) - CELL_DIMENSIONS.height,
+            8, 8
+          )
+        }
       }
     }
 

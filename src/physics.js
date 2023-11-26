@@ -115,6 +115,11 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     y: player.position.y
   }, 1)
 
+  const ceilingCollision = verticalProbe(player.position, {
+    x: player.position.x,
+    y: player.position.y - JUMP_VELOCITY_CELLS_PER_SECOND / fps
+  }, -1)
+
   const horizontalCollision = leftCollision || rightCollision
 
   let onGround = player.velocity.y >= 0 && verticalCollision != null
@@ -173,6 +178,56 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   }
 
   if (onGround) {
+    if (horizontalMovement == null) {
+      const verticalMovement = inputHandler.getVerticalMovement()
+
+      if (ceilingCollision != null && verticalMovement == MOVEMENT.Up) {
+        if (gameState.upPushStartTimestamp == null) {
+          gameState.upPushStartTimestamp = timestamp
+          if (gameState.upPushActualStartTimestamp == null) {
+            gameState.upPushActualStartTimestamp = timestamp
+          }
+        } else if ((timestamp - gameState.upPushStartTimestamp) >= PUSH_HOLD_TIME_SECONDS * 1000) {
+          event = {
+            type: 'push',
+            position: {
+              x: Math.floor(player.position.x),
+              y: Math.floor(player.position.y)
+            },
+            dir: MOVEMENT.Up
+          }
+          gameState.upPushStartTimestamp = null
+        }
+      } else {
+        gameState.upPushStartTimestamp = null
+      }
+
+      if (verticalCollision != null ** player.velocity.y > 0 && verticalMovement == MOVEMENT.Down) {
+        if (gameState.downPushStartTimestamp == null) {
+          gameState.downPushStartTimestamp = timestamp
+          if (gameState.downPushActualStartTimestamp == null) {
+            gameState.downPushActualStartTimestamp = timestamp
+          }
+        } else if ((timestamp - gameState.downPushStartTimestamp) >= PUSH_HOLD_TIME_SECONDS * 1000) {
+          event = {
+            type: 'push',
+            position: {
+              x: Math.floor(player.position.x),
+              y: Math.floor(player.position.y)
+            },
+            dir: MOVEMENT.Down
+          }
+          gameState.downPushStartTimestamp = null
+        }
+      } else {
+        gameState.downPushStartTimestamp = null
+      }
+
+    } else {
+      gameState.upPushStartTimestamp = null
+      gameState.downPushStartTimestamp = null
+    }
+
     if (rightCollision != null && horizontalMovement == MOVEMENT.Right) {
       if (gameState.rightPushStartTimestamp == null) {
         gameState.rightPushStartTimestamp = timestamp
@@ -186,7 +241,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
             x: Math.floor(player.position.x),
             y: Math.floor(player.position.y)
           },
-          dir: 1
+          dir: MOVEMENT.Right
         }
         gameState.rightPushStartTimestamp = null
       }
@@ -207,7 +262,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
             x: Math.floor(player.position.x),
             y: Math.floor(player.position.y)
           },
-          dir: -1
+          dir: MOVEMENT.Left
         }
         gameState.leftPushStartTimestamp = null
       }

@@ -176,7 +176,7 @@ window.onload = () => {
 function getStaticTransaction(gameState, timestamp) {
   const level = gameState.level
 
-  const transaction = [{
+  const transaction = gameState.isPlant ? [] : [{
     fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     objectTypes: null,
