@@ -49,7 +49,12 @@ export function applyRules(gameState, event) {
 
     if (level.hasObject(nextPosition, OBJECT_GROUPS.Path)) {
       if (!level.hasObject(nextPosition, oppositePath)) {
-        return [null, null]
+        if (gameState.plantMovementFrom == null) {
+          return [null, null]
+        } else {
+          gameState.plantMovementFrom = movement
+          return [{ type: 'again' }, null]
+        }
       }
 
       if (gameState.plantMovementFrom == null && (currentCell & path)) {
