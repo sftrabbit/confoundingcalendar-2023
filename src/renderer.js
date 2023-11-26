@@ -105,10 +105,11 @@ class Renderer {
       }
 
       if (visual.objectTypes === 'squish') {
+        const x = gameState.playerFacing === MOVEMENT.Right ? 0 : 8
         const frame = Math.floor(Math.max(0, timestamp - visual.startTimestamp) / (100 / 8))
         this.renderContext.drawImage(
           this.spritesheet,
-          0, (16 + frame) * 8, 8, 8,
+          x, (16 + frame) * 8, 8, 8,
           drawPosition.x, drawPosition.y,
           8, 8
         )

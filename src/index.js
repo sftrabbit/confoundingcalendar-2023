@@ -103,7 +103,6 @@ window.onload = () => {
             }
 
             if (rulesChanged) {
-              console.log('undo added!')
               undoStack.push(priorState)
             }
           } else {
