@@ -222,7 +222,8 @@ export function applyRules(gameState, event) {
 
   for (const movement of movements) {
     const fromPosition = movement.position
-    level.removeObject(fromPosition, OBJECT_TYPES.Box)
+    movement.objectTransfer = level.getObjects(fromPosition)
+    level.clear(fromPosition)
   }
 
   for (const movement of movements) {
@@ -231,7 +232,7 @@ export function applyRules(gameState, event) {
       y: movement.position.y
     }
 
-    level.addObject(toPosition, OBJECT_TYPES.Box)
+    level.addObject(toPosition, movement.objectTransfer)
 
     for (const animation of animations) {
       if (animation.fromPosition.x === movement.position.x && animation.fromPosition.y === movement.position.y) {
@@ -242,13 +243,14 @@ export function applyRules(gameState, event) {
 
   if (falls.length > 0) {
     for (const fall of falls) {
-      level.removeObject(fall.fromPosition, OBJECT_TYPES.Box)
+      fall.objectTransfer = level.getObjects(fall.fromPosition)
+      level.clear(fall.fromPosition)
     }
 
     let squisherAnimation = null
 
     for (const fall of falls) {
-      level.addObject(fall.toPosition, OBJECT_TYPES.Box)
+      level.addObject(fall.toPosition, fall.objectTransfer)
 
       for (const animation of animations) {
         if (animation.fromPosition.x === fall.fromPosition.x && animation.fromPosition.y === fall.fromPosition.y) {

@@ -96,6 +96,14 @@ class Level {
   isEmpty(position) {
     return this.data[position.y][position.x] === 0
   }
+
+  getObjects(position) {
+    return this.data[position.y][position.x]
+  }
+
+  clear(position) {
+    this.data[position.y][position.x] = 0
+  }
 }
 
 export default Level
