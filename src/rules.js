@@ -83,7 +83,7 @@ export function applyRules(gameState, event) {
 
   for (let y = 0; y < level.data.length; y++) {
     for (let x = 0; x < level.data[0].length; x++) {
-      if ((level.data[y][x] & OBJECT_TYPES.Box) === 0) {
+      if ((level.data[y][x] & (OBJECT_TYPES.Box | OBJECT_GROUPS.Path)) === 0) {
         continue
       }
 
