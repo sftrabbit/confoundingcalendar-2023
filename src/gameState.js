@@ -16,6 +16,13 @@ class GameState {
       }
     }
 
+    this.plant = {
+      position: {
+        x: 0,
+        y: 0
+      }
+    }
+
     this.reset()
   }
 
@@ -40,6 +47,9 @@ class GameState {
     this.wasOnGround = false
 
     this.shortenPushTime = false
+
+    this.isPlant = false
+    this.plantMovementFrom = null
   }
 
   serialize (playerPosition, playerFacing) {

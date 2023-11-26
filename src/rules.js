@@ -1,9 +1,17 @@
 import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 import { GRAVITY_CELLS_PER_SECOND_2 } from './physics'
+import { MOVEMENT } from './input'
 
 const MOVEMENT_CAUSES = {
   Push: 0,
   Friction: 1
+}
+
+const OPPOSITE_MOVEMENTS = {
+  [MOVEMENT.Up]: MOVEMENT.Down,
+  [MOVEMENT.Right]: MOVEMENT.Left,
+  [MOVEMENT.Down]: MOVEMENT.Up,
+  [MOVEMENT.Left]: MOVEMENT.Right,
 }
 
 export function applyRules(gameState, event) {
@@ -16,6 +24,59 @@ export function applyRules(gameState, event) {
     durationSeconds: 0.2,
     type: 'push'
   }]
+
+  if (event.type === 'plant-move' || gameState.plantMovementFrom != null) {
+    let enteringExistingPath = false
+
+    console.log(gameState.plantMovementFrom)
+
+    let movement = null
+    if (gameState.plantMovementFrom != null) {
+      const currentCell = level.data[gameState.plant.position.y][gameState.plant.position.x]
+      movement = (currentCell >> 4) & ~gameState.plantMovementFrom
+    } else {
+      movement = event.dir
+    }
+
+    const nextPosition = {
+      x: gameState.plant.position.x + (movement === MOVEMENT.Left ? -1 : (movement === MOVEMENT.Right ? 1 : 0)),
+      y: gameState.plant.position.y + (movement === MOVEMENT.Up ? -1 : (movement === MOVEMENT.Down ? 1 : 0))
+    }
+
+    const oppositeMovement = OPPOSITE_MOVEMENTS[movement]
+
+    const path = movement << 4
+    const oppositePath = oppositeMovement << 4
+
+    if (level.hasObject(nextPosition, OBJECT_GROUPS.Path)) {
+      if (!level.hasObject(nextPosition, oppositePath)) {
+        return [null, null]
+      }
+
+      enteringExistingPath = true
+    }
+
+    level.addObject(gameState.plant.position, path)
+
+    if (level.hasObject(nextPosition, OBJECT_GROUPS.Solid)) {
+      level.addObject(nextPosition, oppositePath)
+
+      gameState.plant.position = nextPosition
+    } else {
+      gameState.player.position.x = nextPosition.x + 0.5
+      gameState.player.position.y = nextPosition.y + 0.5
+      gameState.isPlant = false
+    }
+
+    if (enteringExistingPath) {
+      gameState.plantMovementFrom = oppositeMovement
+      return [{ type: 'again' }, null]
+    } else {
+      gameState.plantMovementFrom = null
+    }
+
+    return [null, null]
+  }
 
   let pendingFalls = []
   let falls = []
@@ -225,11 +286,15 @@ export function applyRules(gameState, event) {
       })
 
       level.addObject(squishGooPosition, OBJECT_TYPES.PathUp)
+
+      gameState.plant.position.x = squishGooPosition.x
+      gameState.plant.position.y = squishGooPosition.y
+      gameState.isPlant = true
     }
 
     animations.fall = true
 
-    return animations
+    return [null, animations]
   }
 
   if (event.type === 'push' && pendingMovements.length > 0 && !pendingMovements[0].cancelled) {
@@ -239,10 +304,10 @@ export function applyRules(gameState, event) {
     }
     animations[0].type = 'push'
     gameState.player.position.x = animations[0].toPosition.x
-    return animations
+    return [null, animations]
   }
 
-  return null
+  return [null, null]
 }
 
 function checkForCancellations(level, pendingMovements) {

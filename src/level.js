@@ -13,12 +13,12 @@ const LEVEL_MAP = `
 #.....#.*.***#.#.......#
 #....#.########...##.###
 ####.#......#.##.......#
-#########.####.#########
-#########.##############
+#########.┃###.#########
+#########.┗━############
 ########################
 ##########.####.......##
-######┏┓##.####.#####.##
-######┗┛#######.......##
+##########.####.#####.##
+###############.......##
 ###############...G...##
 ###############.......##
 ################......##
@@ -47,7 +47,9 @@ const OBJECT_CHARACTER_MAP = {
   '┏': OBJECT_TYPES.Wall | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathDown,
   '┓': OBJECT_TYPES.Wall | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathDown,
   '┗': OBJECT_TYPES.Wall | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathUp,
-  '┛': OBJECT_TYPES.Wall | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathUp
+  '┛': OBJECT_TYPES.Wall | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathUp,
+  '┃': OBJECT_TYPES.Wall | OBJECT_TYPES.PathDown | OBJECT_TYPES.PathUp,
+  '━': OBJECT_TYPES.Wall | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathRight,
 }
 
 class Level {

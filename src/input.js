@@ -14,6 +14,7 @@ class InputHandler {
     this.horizontalMovementStack = []
     this.undo = false
     this.restart = false
+    this.directionalMovement = null
 
     document.addEventListener('keydown', (event) => {
       this.onKeyDown(event)
@@ -30,16 +31,22 @@ class InputHandler {
 
     if (event.key == 'ArrowUp') {
       this.jumpQueued = true
+      this.directionalMovement = MOVEMENT.Up
     }
     if (event.key == 'ArrowLeft') {
       if (this.horizontalMovementStack.indexOf(MOVEMENT.Left) === -1) {
         this.horizontalMovementStack.push(MOVEMENT.Left)
       }
+      this.directionalMovement = MOVEMENT.Left
     }
     if (event.key == 'ArrowRight') {
       if (this.horizontalMovementStack.indexOf(MOVEMENT.Right) === -1) {
         this.horizontalMovementStack.push(MOVEMENT.Right)
       }
+      this.directionalMovement = MOVEMENT.Right
+    }
+    if (event.key == 'ArrowDown') {
+      this.directionalMovement = MOVEMENT.Down
     }
     if (event.key == 'z') {
       this.undo = true

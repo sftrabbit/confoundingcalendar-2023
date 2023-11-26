@@ -77,7 +77,7 @@ window.onload = () => {
           if (event != null) {
             const priorState = gameState.serialize()
 
-            const animations = applyRules(gameState, event)
+            const [rulesEvent, animations] = applyRules(gameState, event)
 
             if (event.type === 'push' || event.type === 'again') {
               if (event.type === 'push') {
@@ -91,8 +91,11 @@ window.onload = () => {
               gameState.pushHappening = true
             }
 
-            if (animations) {
+            if (animations || (rulesEvent != null && rulesEvent.type === 'again')) {
               nextFrameEvent = { type: 'again' }
+            }
+
+            if (animations) {
               animationHandler.queueTransaction(animations)
               if (event.type !== 'again') {
                 undoStack.push(priorState)
