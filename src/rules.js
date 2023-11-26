@@ -28,11 +28,10 @@ export function applyRules(gameState, event) {
   if (event.type === 'plant-move' || gameState.plantMovementFrom != null) {
     let enteringExistingPath = false
 
-    console.log(gameState.plantMovementFrom)
+    const currentCell = level.data[gameState.plant.position.y][gameState.plant.position.x]
 
     let movement = null
     if (gameState.plantMovementFrom != null) {
-      const currentCell = level.data[gameState.plant.position.y][gameState.plant.position.x]
       movement = (currentCell >> 4) & ~gameState.plantMovementFrom
     } else {
       movement = event.dir
@@ -50,6 +49,10 @@ export function applyRules(gameState, event) {
 
     if (level.hasObject(nextPosition, OBJECT_GROUPS.Path)) {
       if (!level.hasObject(nextPosition, oppositePath)) {
+        return [null, null]
+      }
+
+      if (gameState.plantMovementFrom == null && (currentCell & path)) {
         return [null, null]
       }
 
