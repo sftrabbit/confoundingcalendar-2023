@@ -14,6 +14,8 @@ const OPPOSITE_MOVEMENTS = {
   [MOVEMENT.Left]: MOVEMENT.Right,
 }
 
+// TODO - what should happen if player is squished into existing path not pointing the right way?
+
 export function applyRules(gameState, event) {
   const level = gameState.level
 
@@ -295,6 +297,10 @@ export function applyRules(gameState, event) {
         delaySeconds: squisherAnimation.squishSeconds + 0.07,
         type: 'push'
       })
+
+      if (level.hasObject(squishGooPosition, OBJECT_TYPES.PathUp)) {
+        gameState.plantMovementFrom = MOVEMENT.Up
+      }
 
       level.addObject(squishGooPosition, OBJECT_TYPES.PathUp)
 
