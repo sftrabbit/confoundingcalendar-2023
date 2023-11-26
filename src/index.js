@@ -30,6 +30,7 @@ window.onload = () => {
 
     const tick = (timestamp) => {
       if (previousTimestamp != null) {
+        console.log('----')
         let deltaTime = timestamp - previousTimestamp
 
         if (inputHandler.skipFrame) {
@@ -77,7 +78,7 @@ window.onload = () => {
           if (event != null) {
             const priorState = gameState.serialize()
 
-            const [rulesEvent, animations] = applyRules(gameState, event)
+            const [rulesEvent, rulesChanged, animations] = applyRules(gameState, event)
 
             if (event.type === 'push' || event.type === 'again') {
               if (event.type === 'push') {
@@ -86,6 +87,8 @@ window.onload = () => {
                 if (animations) {
                   gameState.rightPushStartTimestamp = null
                   gameState.leftPushStartTimestamp = null
+                  gameState.upPushStartTimestamp = null
+                  gameState.downPushStartTimestamp = null
                 }
               }
               gameState.pushHappening = true
@@ -97,9 +100,11 @@ window.onload = () => {
 
             if (animations) {
               animationHandler.queueTransaction(animations)
-              if (event.type !== 'again') {
-                undoStack.push(priorState)
-              }
+            }
+
+            if (rulesChanged) {
+              console.log('undo added!')
+              undoStack.push(priorState)
             }
           } else {
             if (physicsChanged) {

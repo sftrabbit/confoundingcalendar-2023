@@ -69,6 +69,9 @@ class GameState {
       playerPosition.x,
       playerPosition.y,
       playerFacing,
+      this.plant.position.x,
+      this.plant.position.y,
+      this.isPlant,
       ...this.level.data.reduce((blockPositions, row, y) => {
         const rowBlockPositions = row.reduce((rowBlockPositions, cell, x) => {
           if (!(cell & OBJECT_TYPES.Box)) {
@@ -80,7 +83,20 @@ class GameState {
         }, [])
         blockPositions.push(...rowBlockPositions)
         return blockPositions
-      }, [])
+      }, []),
+      -1,
+      ...this.level.data.reduce((pathPositions, row, y) => {
+        const rowPathPositions = row.reduce((rowPathPositions, cell, x) => {
+          if (!(cell & OBJECT_GROUPS.Path)) {
+            return rowPathPositions
+          }
+
+          rowPathPositions.push(x, y, cell & 0xf0)
+          return rowPathPositions
+        }, [])
+        pathPositions.push(...rowPathPositions)
+        return pathPositions
+      }, []),
     ]
   }
 
@@ -91,17 +107,35 @@ class GameState {
     this.player.position.y = serializedState[1]
     this.playerFacing = serializedState[2]
 
+    this.plant.position.x = serializedState[3]
+    this.plant.position.y = serializedState[4]
+    this.isPlant = serializedState[5]
+
     for (let y = 0; y < this.level.data.length; y++) {
       for (let x = 0; x < this.level.data[0].length; x++) {
         this.level.removeObject({ x, y }, OBJECT_TYPES.Box | OBJECT_GROUPS.Path)
       }
     }
 
-    for (let i = 3; i < serializedState.length; i += 2) {
+    let i = 6
+
+    for (; i < serializedState.length; i += 2) {
+      if (serializedState[i] === -1) {
+        i++
+        break
+      }
+
       this.level.addObject({
         x: serializedState[i],
         y: serializedState[i + 1]
       }, OBJECT_TYPES.Box)
+    }
+
+    for (; i < serializedState.length; i += 3) {
+      this.level.addObject({
+        x: serializedState[i],
+        y: serializedState[i + 1]
+      }, serializedState[i + 2])
     }
   }
 }

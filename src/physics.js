@@ -17,6 +17,8 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   let physicsChanged = false
 
   if (gameState.isPlant) {
+    gameState.wasOnGround = false
+
     if (inputHandler.directionalMovement != null) {
       const event = { type: 'plant-move', dir: inputHandler.directionalMovement }
       inputHandler.directionalMovement = null

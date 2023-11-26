@@ -50,15 +50,16 @@ export function applyRules(gameState, event) {
     if (level.hasObject(nextPosition, OBJECT_GROUPS.Path)) {
       if (!level.hasObject(nextPosition, oppositePath)) {
         if (gameState.plantMovementFrom == null) {
-          return [null, null]
+          return [null, true, null]
         } else {
           gameState.plantMovementFrom = movement
-          return [{ type: 'again' }, null]
+          console.log('bounce back')
+          return [{ type: 'again' }, false, null]
         }
       }
 
       if (gameState.plantMovementFrom == null && (currentCell & path)) {
-        return [null, null]
+        return [null, false, null]
       }
 
       enteringExistingPath = true
@@ -78,12 +79,12 @@ export function applyRules(gameState, event) {
 
     if (enteringExistingPath) {
       gameState.plantMovementFrom = oppositeMovement
-      return [{ type: 'again' }, null]
+      return [{ type: 'again' }, event.type !== 'again', null]
     } else {
       gameState.plantMovementFrom = null
     }
 
-    return [null, null]
+    return [null, event.type !== 'again', null]
   }
 
   let pendingFalls = []
@@ -300,11 +301,12 @@ export function applyRules(gameState, event) {
       gameState.plant.position.x = squishGooPosition.x
       gameState.plant.position.y = squishGooPosition.y
       gameState.isPlant = true
+      gameState.lastGroundPosition = null
     }
 
     animations.fall = true
 
-    return [null, animations]
+    return [null, true, animations]
   }
 
   if (event.type === 'push') {
@@ -317,8 +319,9 @@ export function applyRules(gameState, event) {
         gameState.plant.position.x = pushedPosition.x
         gameState.plant.position.y = pushedPosition.y
         gameState.isPlant = true
+        gameState.lastGroundPosition = null
         gameState.plantMovementFrom = OPPOSITE_MOVEMENTS[event.dir]
-        return [{ type: 'again' }, null]
+        return [{ type: 'again' }, true, null]
       }
     }
   }
@@ -330,10 +333,10 @@ export function applyRules(gameState, event) {
     }
     animations[0].type = 'push'
     gameState.player.position.x = animations[0].toPosition.x
-    return [null, animations]
+    return [null, true, animations]
   }
 
-  return [null, null]
+  return [null, false, null]
 }
 
 function checkForCancellations(level, pendingMovements) {
