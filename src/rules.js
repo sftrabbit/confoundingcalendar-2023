@@ -54,15 +54,23 @@ export function applyRules(gameState, event) {
         x: pendingFall.position.x,
         y: pendingFall.position.y - risen
       }
+      const toY = pendingFall.position.y - risen + fallDistance
       const toPosition = {
         x: pendingFall.position.x,
-        y: pendingFall.position.y - risen + fallDistance
+        y: toY
       }
-      falls.push({
+      const fall = {
         fromPosition,
         toPosition,
         objectTypes: level.data[fromPosition.y][fromPosition.x],
-      })
+      }
+
+      if (Math.floor(gameState.player.position.x) === fromPosition.x && Math.floor(gameState.player.position.y) === toY) {
+        fall.squisher = true
+      }
+
+      falls.push(fall)
+
       risen += 1
     }
   }
@@ -176,6 +184,8 @@ export function applyRules(gameState, event) {
       level.removeObject(fall.fromPosition, OBJECT_TYPES.Box)
     }
 
+    let squisherAnimation = null
+
     for (const fall of falls) {
       level.addObject(fall.toPosition, OBJECT_TYPES.Box)
 
@@ -185,8 +195,36 @@ export function applyRules(gameState, event) {
           const fallDistance = animation.toPosition.y - animation.fromPosition.y
           animation.durationSeconds = Math.sqrt((2 * fallDistance) / GRAVITY_CELLS_PER_SECOND_2)
           animation.tween = 'gravity'
+
+          if (fall.squisher) {
+            animation.squishSeconds = Math.sqrt((2 * (fallDistance - 1)) / GRAVITY_CELLS_PER_SECOND_2)
+            squisherAnimation = animation
+          }
+
+          break
         }
       }
+    }
+
+    if (squisherAnimation != null) {
+      const squishPosition = { x: squisherAnimation.toPosition.x, y: squisherAnimation.toPosition.y }
+      animations[0].fromPosition = squishPosition
+      animations[0].toPosition = squishPosition
+      animations[0].objectTypes = 'squish'
+      animations[0].durationSeconds = 0.1
+      animations[0].delaySeconds = squisherAnimation.squishSeconds
+
+      const squishGooPosition = { x: squishPosition.x, y: squishPosition.y + 1 }
+      animations.push({
+        fromPosition: squishGooPosition,
+        toPosition: squishGooPosition,
+        objectTypes: 'squishgoo',
+        durationSeconds: 0.5,
+        delaySeconds: squisherAnimation.squishSeconds + 0.07,
+        type: 'push'
+      })
+
+      level.addObject(squishGooPosition, OBJECT_TYPES.PathUp)
     }
 
     animations.fall = true

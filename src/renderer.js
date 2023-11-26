@@ -1,4 +1,4 @@
-import { OBJECT_TYPES } from './level'
+import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 import { MOVEMENT } from './input'
 
 const CELL_DIMENSIONS = {
@@ -104,13 +104,48 @@ class Renderer {
         y: Math.floor(visual.position.y * CELL_DIMENSIONS.height)
       }
 
-      if (visual.objectTypes & OBJECT_TYPES.Box) {
+      if (visual.objectTypes === 'squish') {
+        const frame = Math.floor(Math.max(0, timestamp - visual.startTimestamp) / (100 / 8))
         this.renderContext.drawImage(
           this.spritesheet,
-          16, 0, 8, 8,
+          0, (16 + frame) * 8, 8, 8,
           drawPosition.x, drawPosition.y,
           8, 8
         )
+      } else if (visual.objectTypes === 'squishgoo') {
+        if (timestamp < visual.startTimestamp) {
+          continue
+        }
+        const frame = Math.floor((timestamp - visual.startTimestamp) / (500 / 4))
+        this.renderContext.drawImage(
+          this.spritesheet,
+          16, (1 + frame) * 8, 8, 8,
+          drawPosition.x, drawPosition.y,
+          8, 8
+        )
+      } else if (visual.objectTypes & (OBJECT_TYPES.Box | OBJECT_GROUPS.Path)) {
+        if (visual.objectTypes & OBJECT_TYPES.Box) {
+          this.renderContext.drawImage(
+            this.spritesheet,
+            16, 0, 8, 8,
+            drawPosition.x, drawPosition.y,
+            8, 8
+          )
+        }
+
+        if (visual.objectTypes & OBJECT_GROUPS.Path) {
+          for (let i = 0; i < 4; i++) {
+            const objectType = 1 << (4 + i)
+            if (visual.objectTypes & objectType) {
+              this.renderContext.drawImage(
+                this.spritesheet,
+                24, 8 + (i * 8), 8, 8,
+                drawPosition.x, drawPosition.y,
+                8, 8
+              )
+            }
+          }
+        }
       } else {
         const playerSpriteSourcePosition = getPlayerSpritePosition(gameState, timestamp, visual.type, overridePushAnimation)
         this.renderContext.drawImage(

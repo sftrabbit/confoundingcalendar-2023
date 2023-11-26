@@ -184,7 +184,7 @@ function getStaticTransaction(gameState, timestamp) {
 
   for (let y = 0; y < level.data.length; y++) {
     for (let x = 0; x < level.data[0].length; x++) {
-      if ((level.data[y][x] & OBJECT_GROUPS.Pushable) === 0) {
+      if ((level.data[y][x] & (OBJECT_GROUPS.Pushable | OBJECT_GROUPS.Path)) === 0) {
         continue
       }
 
@@ -205,8 +205,10 @@ function interpolateVisuals (activeTransaction, timestamp) {
   let allFinished = true
 
   return [
-    activeTransaction.map((animation) => {
-      const t = Math.min(1, (timestamp - animation.startTimestamp) / (animation.endTimestamp - animation.startTimestamp))
+    activeTransaction.reduce((visuals, animation) => {
+      const t = Math.max(0, Math.min(1,
+        (timestamp - animation.startTimestamp) / (animation.endTimestamp - animation.startTimestamp)
+      ))
       const vector = {
         x: animation.toPosition.x - animation.fromPosition.x,
         y: animation.toPosition.y - animation.fromPosition.y
@@ -222,15 +224,18 @@ function interpolateVisuals (activeTransaction, timestamp) {
         }
         : (fromPosition, vector, t) => fromPosition + t * vector
 
-      return {
+      visuals.push({
+        startTimestamp: animation.startTimestamp,
         position: {
           x: tween(animation.fromPosition.x, vector.x, t),
           y: tween(animation.fromPosition.y, vector.y, t)
         },
         objectTypes: animation.objectTypes,
         type: animation.type
-      }
-    }),
+      })
+
+      return visuals
+    }, []),
     allFinished
   ]
 }

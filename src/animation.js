@@ -23,8 +23,9 @@ class AnimationHandler {
 
     this.transactionActive = true
     for (const animation of this.pendingTransactions[0]) {
-      animation.startTimestamp = timestamp
-      animation.endTimestamp = timestamp + animation.durationSeconds * 1000
+      const delaySeconds = animation.delaySeconds || 0
+      animation.startTimestamp = timestamp + delaySeconds * 1000
+      animation.endTimestamp = timestamp + (delaySeconds + animation.durationSeconds) * 1000
     }
     return this.pendingTransactions[0]
   }

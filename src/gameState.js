@@ -1,5 +1,5 @@
 import { MOVEMENT } from './input'
-import { OBJECT_TYPES } from './level'
+import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 
 class GameState {
   constructor (level) {
@@ -78,7 +78,7 @@ class GameState {
 
     for (let y = 0; y < this.level.data.length; y++) {
       for (let x = 0; x < this.level.data[0].length; x++) {
-        this.level.removeObject({ x, y }, OBJECT_TYPES.Box)
+        this.level.removeObject({ x, y }, OBJECT_TYPES.Box | OBJECT_GROUPS.Path)
       }
     }
 
