@@ -18,8 +18,8 @@ class GameState {
 
     this.plant = {
       position: {
-        x: 9,
-        y: 1
+        x: 16,
+        y: 0
       }
     }
 
