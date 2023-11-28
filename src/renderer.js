@@ -124,6 +124,20 @@ class Renderer {
           drawPosition.x, drawPosition.y,
           8, 8
         )
+      } else if (visual.objectTypes === 'plant-eye') {
+        const frame = gameState.plantEyeDir === MOVEMENT.Up
+          ? 0
+          : (gameState.plantEyeDir === MOVEMENT.Right
+            ? 1
+            : (gameState.plantEyeDir === MOVEMENT.Down ? 2 : 3)
+            )
+
+        this.renderContext.drawImage(
+          this.spritesheet,
+          24, (5 + frame) * 8, 8, 8,
+          drawPosition.x, drawPosition.y,
+          8, 8
+        )
       } else if (visual.objectTypes & (OBJECT_TYPES.Box | OBJECT_GROUPS.Path)) {
         if (visual.objectTypes & OBJECT_TYPES.Box) {
           this.renderContext.drawImage(

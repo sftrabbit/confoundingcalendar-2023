@@ -71,6 +71,8 @@ export function applyRules(gameState, event) {
       enteringExistingPath = true
     }
 
+    gameState.plantEyeDir = movement
+
     level.addObject(gameState.plant.position, path)
 
     if (level.hasObject(nextPosition, OBJECT_GROUPS.Solid)) {

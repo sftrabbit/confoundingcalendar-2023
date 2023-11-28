@@ -205,6 +205,17 @@ function getStaticTransaction(gameState, timestamp) {
     }
   }
 
+  if (gameState.isPlant) {
+    transaction.push({
+      fromPosition: { x: gameState.plant.position.x, y: gameState.plant.position.y },
+      toPosition: { x: gameState.plant.position.x, y: gameState.plant.position.y },
+      objectTypes: 'plant-eye',
+      startTimestamp: timestamp,
+      endTimestamp: Infinity,
+      type: null
+    })
+  }
+
   return transaction
 }
 
