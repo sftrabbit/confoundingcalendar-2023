@@ -14,12 +14,6 @@ const OPPOSITE_MOVEMENTS = {
   [MOVEMENT.Left]: MOVEMENT.Right,
 }
 
-// TODO - what should happen if player is squished into existing path not pointing the right way?
-// TODO - undo during fall animation doesn't actually undo
-// TODO - undoing after fall goes to intermediate state
-// TODO - can move backwards immediately after crush
-// TODO - t-junctions
-
 export function applyRules(gameState, event) {
   const level = gameState.level
 
@@ -48,24 +42,27 @@ export function applyRules(gameState, event) {
       y: gameState.plant.position.y + (movement === MOVEMENT.Up ? -1 : (movement === MOVEMENT.Down ? 1 : 0))
     }
 
+    if (nextPosition.y < 0) {
+      return [null, false, null]
+    }
+
     const oppositeMovement = OPPOSITE_MOVEMENTS[movement]
 
     const path = movement << 4
     const oppositePath = oppositeMovement << 4
 
+    if (gameState.plantMovementFrom == null && (currentCell & path)) {
+      return [null, false, null]
+    }
+
     if (level.hasObject(nextPosition, OBJECT_GROUPS.Path)) {
       if (!level.hasObject(nextPosition, oppositePath)) {
         if (gameState.plantMovementFrom == null) {
-          return [null, true, null]
+          return [null, false, null]
         } else {
           gameState.plantMovementFrom = movement
-          console.log('bounce back')
           return [{ type: 'again' }, false, null]
         }
-      }
-
-      if (gameState.plantMovementFrom == null && (currentCell & path)) {
-        return [null, false, null]
       }
 
       enteringExistingPath = true
@@ -95,8 +92,6 @@ export function applyRules(gameState, event) {
     return [null, event.type !== 'again', null]
   }
 
-  console.log('foo')
-
   let pendingFalls = []
   let falls = []
 
@@ -122,7 +117,6 @@ export function applyRules(gameState, event) {
       }
     }
   }
-  console.log('foo2')
 
   for (const pendingFall of pendingFalls) {
     let fallDistance = 0
@@ -313,6 +307,11 @@ export function applyRules(gameState, event) {
         gameState.plantMovementFrom = MOVEMENT.Up
       }
 
+      if (level.hasObject(squishGooPosition, OBJECT_GROUPS.Path & ~OBJECT_TYPES.PathUp)) {
+        gameState.dead = true
+        return [null, true, null]
+      }
+
       level.addObject(squishGooPosition, OBJECT_TYPES.PathUp)
 
       gameState.plant.position.x = squishGooPosition.x
@@ -322,6 +321,8 @@ export function applyRules(gameState, event) {
     }
 
     animations.fall = true
+
+    console.log('here')
 
     return [null, true, animations]
   }
@@ -350,7 +351,7 @@ export function applyRules(gameState, event) {
     }
     animations[0].type = 'push'
     gameState.player.position.x = animations[0].toPosition.x
-    return [null, true, animations]
+    return [{ type: 'again' }, true, animations]
   }
 
   return [null, false, null]

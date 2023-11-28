@@ -63,7 +63,7 @@ window.onload = () => {
 
         gameState.pushHappening = null
 
-        if (!animationHandler.hasPendingTransactions()) {
+        if (!animationHandler.hasPendingTransactions() || gameState.dead) {
           const priorGroundPosition = gameState.lastGroundPosition
           const priorGroundFacing = gameState.lastGroundFacing
 
@@ -102,7 +102,8 @@ window.onload = () => {
               animationHandler.queueTransaction(animations)
             }
 
-            if (rulesChanged) {
+            if (rulesChanged && event.type !== 'again') {
+              console.log('pushing', event.type)
               undoStack.push(priorState)
             }
           } else {
