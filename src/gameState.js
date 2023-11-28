@@ -18,8 +18,8 @@ class GameState {
 
     this.plant = {
       position: {
-        x: 0,
-        y: 0
+        x: 9,
+        y: 1
       }
     }
 
@@ -53,7 +53,7 @@ class GameState {
 
     this.shortenPushTime = false
 
-    this.isPlant = false
+    this.isPlant = true
     this.plantMovementFrom = null
   }
 

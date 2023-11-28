@@ -15,6 +15,10 @@ const OPPOSITE_MOVEMENTS = {
 }
 
 // TODO - what should happen if player is squished into existing path not pointing the right way?
+// TODO - undo during fall animation doesn't actually undo
+// TODO - undoing after fall goes to intermediate state
+// TODO - can move backwards immediately after crush
+// TODO - t-junctions
 
 export function applyRules(gameState, event) {
   const level = gameState.level
@@ -89,6 +93,8 @@ export function applyRules(gameState, event) {
     return [null, event.type !== 'again', null]
   }
 
+  console.log('foo')
+
   let pendingFalls = []
   let falls = []
 
@@ -105,13 +111,16 @@ export function applyRules(gameState, event) {
         durationSeconds: 0.2
       })
 
-      if ((level.data[y + 1][x] & OBJECT_GROUPS.Solid) === 0) {
-        pendingFalls.push({
-          position: { x, y }
-        })
+      if (level.data[y][x] & OBJECT_TYPES.Box) {
+        if ((level.data[y + 1][x] & OBJECT_GROUPS.Solid) === 0) {
+          pendingFalls.push({
+            position: { x, y }
+          })
+        }
       }
     }
   }
+  console.log('foo2')
 
   for (const pendingFall of pendingFalls) {
     let fallDistance = 0

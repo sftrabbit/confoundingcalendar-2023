@@ -1,28 +1,24 @@
 const LEVEL_MAP = `
-#########┗┛P┗┓#┗┓┏┛┏━┛┃#
-#############┗━┓┃┗━┛G..┏
-###############┗┛####..┃
-#########....#######*..┃
-#########.*..########┗━┛
-########################
-#.....#..*..*..........#
-#....┃#.#*..*#.........#
-#...#┗━..*..*..........#
-###......*..*.#........#
-#####....**#*..........#
-#.....#.*****#.#.......#
-#....#.########...##.###
-####.#......#.##.......#
-#########.┃###.#########
-#########.┗━############
-########################
-##########.####.......##
-##########.####.#####.##
-###############.......##
-###############...G...##
-###############.......##
-################......##
-########################
+##┏┓####┏┓###################
+┏━┛┗━━┓#┃p┗┓┗┓┏┛┏━┛┗┓┏━━━━━━┓
+┃#####┃┏┛##┃.┃┗┓┃###┃┃######┃
+┃#####┃┃###┃┏┛#┗┛###┃┃######┃
+┃#####┗┛###┗┛.*#..##┃┃######┃
+┃#######...##.*##.##┃┃######┃
+┃#######....#.*..##┏┛┃######┃
+┃#######....#.###.#┃┏┛######┃
+┃##...*...........#┃┃##...##┃
+┃#....*...........#┃┃#.....#┃
+┃#..###......**...#┃┃#.....#┃
+┃##..........###..#┃┃#.....#┃
+┃#.###...........##┗┛#######┃
+┃#.###..........##.#########┃
+┃#.###......*...*qte┏┓######┃
+┃#.###┏┓#*#######l#r┛┃######┃
+┃#.#..┃┃#*###┏┓##l.*.┃######┃
+┃#.#.#┃┃#*.##┃┃##l.*.┃######┃
+┃..*.*ll*****ll**l**.┃######┃
+┗━━━━━┛┗━━━━━┛┗━━┛###┗━━━━━━┛
 `.trim()
 
 export const OBJECT_TYPES = {
@@ -50,6 +46,13 @@ const OBJECT_CHARACTER_MAP = {
   '┛': OBJECT_TYPES.Wall | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathUp,
   '┃': OBJECT_TYPES.Wall | OBJECT_TYPES.PathDown | OBJECT_TYPES.PathUp,
   '━': OBJECT_TYPES.Wall | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathRight,
+  'p': OBJECT_TYPES.Wall | OBJECT_TYPES.PathUp,
+  'l': OBJECT_TYPES.Box | OBJECT_TYPES.PathUp | OBJECT_TYPES.PathDown,
+  'q': OBJECT_TYPES.Box | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathDown,
+  'w': OBJECT_TYPES.Box | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathUp,
+  'e': OBJECT_TYPES.Box | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathDown,
+  'r': OBJECT_TYPES.Box | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathUp,
+  't': OBJECT_TYPES.Box | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathLeft,
 }
 
 class Level {
