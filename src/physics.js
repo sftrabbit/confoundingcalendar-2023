@@ -17,8 +17,6 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   let physicsChanged = false
 
   if (gameState.isPlant) {
-    gameState.wasOnGround = false
-
     if (inputHandler.directionalMovement != null) {
       const event = { type: 'plant-move', dir: inputHandler.directionalMovement }
       inputHandler.directionalMovement = null
@@ -289,7 +287,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   }
 
   if (!onGround) {
-    gameState.playerJumpingDir = Math.sign(player.velocity.y - 5)
+    gameState.playerJumpingDir = Math.sign(player.velocity.y - 3)
     gameState.wasOnGround = false
   } else {
     if (!gameState.wasOnGround && gameState.lastGroundPosition != null && Math.floor(player.position.y) !== Math.floor(gameState.lastGroundPosition.y)) {

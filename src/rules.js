@@ -17,80 +17,7 @@ const OPPOSITE_MOVEMENTS = {
 export function applyRules(gameState, event) {
   const level = gameState.level
 
-  const animations = [{
-    fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
-    toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
-    objectTypes: null,
-    durationSeconds: 0.2,
-    type: 'push'
-  }]
-
-  if (event.type === 'plant-move' || gameState.plantMovementFrom != null) {
-    let enteringExistingPath = false
-
-    const currentCell = level.data[gameState.plant.position.y][gameState.plant.position.x]
-
-    let movement = null
-    if (gameState.plantMovementFrom != null) {
-      movement = (currentCell >> 4) & ~gameState.plantMovementFrom
-    } else {
-      movement = event.dir
-    }
-
-    const nextPosition = {
-      x: gameState.plant.position.x + (movement === MOVEMENT.Left ? -1 : (movement === MOVEMENT.Right ? 1 : 0)),
-      y: gameState.plant.position.y + (movement === MOVEMENT.Up ? -1 : (movement === MOVEMENT.Down ? 1 : 0))
-    }
-
-    if (nextPosition.y < 0) {
-      return [null, false, null]
-    }
-
-    const oppositeMovement = OPPOSITE_MOVEMENTS[movement]
-
-    const path = movement << 4
-    const oppositePath = oppositeMovement << 4
-
-    if (gameState.plantMovementFrom == null && (currentCell & path)) {
-      return [null, false, null]
-    }
-
-    if (level.hasObject(nextPosition, OBJECT_GROUPS.Path)) {
-      if (!level.hasObject(nextPosition, oppositePath)) {
-        if (gameState.plantMovementFrom == null) {
-          return [null, false, null]
-        } else {
-          gameState.plantMovementFrom = movement
-          return [{ type: 'again' }, false, null]
-        }
-      }
-
-      enteringExistingPath = true
-    }
-
-    gameState.plantEyeDir = movement
-
-    level.addObject(gameState.plant.position, path)
-
-    if (level.hasObject(nextPosition, OBJECT_GROUPS.Solid)) {
-      level.addObject(nextPosition, oppositePath)
-
-      gameState.plant.position = nextPosition
-    } else {
-      gameState.player.position.x = nextPosition.x + 0.5
-      gameState.player.position.y = nextPosition.y + 0.5
-      gameState.isPlant = false
-    }
-
-    if (enteringExistingPath) {
-      gameState.plantMovementFrom = oppositeMovement
-      return [{ type: 'again' }, event.type !== 'again', null]
-    } else {
-      gameState.plantMovementFrom = null
-    }
-
-    return [null, event.type !== 'again', null]
-  }
+  const animations = []
 
   let pendingFalls = []
   let falls = []
@@ -117,6 +44,92 @@ export function applyRules(gameState, event) {
       }
     }
   }
+
+  if (event.type === 'plant-move' || gameState.plantMovementFrom != null) {
+    const eyeAnimationIndex = animations.push({
+      fromPosition: { x: gameState.plant.position.x, y: gameState.plant.position.y },
+      toPosition: { x: gameState.plant.position.x, y: gameState.plant.position.y },
+      objectTypes: 'plant-eye',
+      durationSeconds: 0.03,
+    }) - 1
+
+    let enteringExistingPath = false
+
+    const currentCell = level.data[gameState.plant.position.y][gameState.plant.position.x]
+
+    let movement = null
+    if (gameState.plantMovementFrom != null) {
+      movement = (currentCell >> 4) & ~gameState.plantMovementFrom
+    } else {
+      movement = event.dir
+    }
+
+    const nextPosition = {
+      x: gameState.plant.position.x + (movement === MOVEMENT.Left ? -1 : (movement === MOVEMENT.Right ? 1 : 0)),
+      y: gameState.plant.position.y + (movement === MOVEMENT.Up ? -1 : (movement === MOVEMENT.Down ? 1 : 0))
+    }
+
+    const oppositeMovement = OPPOSITE_MOVEMENTS[movement]
+
+    const path = movement << 4
+    const oppositePath = oppositeMovement << 4
+
+    if (nextPosition.y < 0 || (gameState.plantMovementFrom == null && (currentCell & path))) {
+      // Trying to move backwards
+      return [null, false, null]
+    }
+
+    if (level.hasObject(nextPosition, OBJECT_GROUPS.Path)) {
+      if (!level.hasObject(nextPosition, oppositePath)) {
+        if (gameState.plantMovementFrom == null) {
+          // Trying to move into existing path that isn't pointing the right way
+          return [null, false, null]
+        } else {
+          // Turn around
+          gameState.plantMovementFrom = movement
+          return [{ type: 'again' }, false, null]
+        }
+      }
+
+      enteringExistingPath = true
+    }
+
+    gameState.plantEyeDir = movement
+
+    level.addObject(gameState.plant.position, path)
+
+    if (level.hasObject(nextPosition, OBJECT_GROUPS.Solid)) {
+      level.addObject(nextPosition, oppositePath)
+
+      gameState.plant.position = nextPosition
+    } else {
+      gameState.player.position.x = nextPosition.x + 0.5
+      gameState.player.position.y = nextPosition.y + 0.5
+      gameState.isPlant = false
+    }
+
+    animations[eyeAnimationIndex].toPosition.x = nextPosition.x
+    animations[eyeAnimationIndex].toPosition.y = nextPosition.y
+
+    if (enteringExistingPath) {
+      gameState.plantMovementFrom = oppositeMovement
+      // Automated movement
+      return [{ type: 'again' }, event.type !== 'again', animations]
+    } else {
+      gameState.plantMovementFrom = null
+    }
+
+    // Normal movement
+    return [null, event.type !== 'again', animations]
+  }
+
+  const playerAnimationIndex = animations.push({
+    fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
+    toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
+    objectTypes: null,
+    durationSeconds: 0.2,
+    type: 'push'
+  }) - 1
 
   for (const pendingFall of pendingFalls) {
     let fallDistance = 0
@@ -287,11 +300,11 @@ export function applyRules(gameState, event) {
 
     if (squisherAnimation != null) {
       const squishPosition = { x: squisherAnimation.toPosition.x, y: squisherAnimation.toPosition.y }
-      animations[0].fromPosition = squishPosition
-      animations[0].toPosition = squishPosition
-      animations[0].objectTypes = 'squish'
-      animations[0].durationSeconds = 0.1
-      animations[0].delaySeconds = squisherAnimation.squishSeconds
+      animations[playerAnimationIndex].fromPosition = squishPosition
+      animations[playerAnimationIndex].toPosition = squishPosition
+      animations[playerAnimationIndex].objectTypes = 'squish'
+      animations[playerAnimationIndex].durationSeconds = 0.1
+      animations[playerAnimationIndex].delaySeconds = squisherAnimation.squishSeconds
 
       const squishGooPosition = { x: squishPosition.x, y: squishPosition.y + 1 }
       animations.push({
@@ -322,8 +335,6 @@ export function applyRules(gameState, event) {
 
     animations.fall = true
 
-    console.log('here')
-
     return [null, true, animations]
   }
 
@@ -345,12 +356,12 @@ export function applyRules(gameState, event) {
   }
 
   if (event.type === 'push' && pendingMovements.length > 0 && !pendingMovements[0].cancelled) {
-    animations[0].toPosition = {
+    animations[playerAnimationIndex].toPosition = {
       x: gameState.player.position.x + (event.dir === MOVEMENT.Right ? 1 : -1),
       y: gameState.player.position.y
     }
-    animations[0].type = 'push'
-    gameState.player.position.x = animations[0].toPosition.x
+    animations[playerAnimationIndex].type = 'push'
+    gameState.player.position.x = animations[playerAnimationIndex].toPosition.x
     return [{ type: 'again' }, true, animations]
   }
 

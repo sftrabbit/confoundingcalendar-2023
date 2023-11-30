@@ -63,6 +63,12 @@ window.onload = () => {
 
         gameState.pushHappening = null
 
+        if (animationHandler.hasPendingTransactions()) {
+          if (inputHandler.jumpQueued || inputHandler.directionalMovement != null) {
+            animationHandler.clear()
+          }
+        }
+
         if (!animationHandler.hasPendingTransactions() || gameState.dead) {
           const priorGroundPosition = gameState.lastGroundPosition
           const priorGroundFacing = gameState.lastGroundFacing
@@ -103,7 +109,6 @@ window.onload = () => {
             }
 
             if (rulesChanged && event.type !== 'again') {
-              console.log('pushing', event.type)
               undoStack.push(priorState)
             }
           } else {

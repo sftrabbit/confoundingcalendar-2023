@@ -88,12 +88,24 @@ class Renderer {
             )
           }
         } else {
-          this.renderContext.drawImage(
-            this.spritesheet,
-            24, 0, 8, 8,
-            drawPosition.x, drawPosition.y,
-            8, 8
-          )
+          const position = { x, y }
+          const cell = gameState.level.getObjects(position)
+          if (cell & OBJECT_GROUPS.Decoration) {
+            const spriteX = 7 * 8
+            this.renderContext.drawImage(
+              this.spritesheet,
+              spriteX, (cell & OBJECT_TYPES.PillarTop) ? 0 : ((cell & OBJECT_TYPES.PillarMiddle) ? 8 : (cell & OBJECT_TYPES.PillarBottom) ? 16 : ((cell & OBJECT_TYPES.Alcove) ? 24 : 32)), 8, 8,
+              drawPosition.x, drawPosition.y,
+              8, 8
+            )
+          } else {
+            this.renderContext.drawImage(
+              this.spritesheet,
+              24, 0, 8, 8,
+              drawPosition.x, drawPosition.y,
+              8, 8
+            )
+          }
         }
       }
     }
@@ -169,10 +181,10 @@ class Renderer {
           drawPosition.x - (CELL_DIMENSIONS.width / 2), drawPosition.y - (CELL_DIMENSIONS.height / 2),
           8, 8
         )
-        if (playerSpriteSourcePosition[1] === 8 * CELL_DIMENSIONS.height) {
+        if (playerSpriteSourcePosition[0] >= (5 * 8) && playerSpriteSourcePosition[1] >= 2 * 8) {
           this.renderContext.drawImage(
             this.spritesheet,
-            playerSpriteSourcePosition[0], 24 * CELL_DIMENSIONS.height, 8, 8,
+            playerSpriteSourcePosition[0], playerSpriteSourcePosition[1] + 2 * 8, 8, 8,
             drawPosition.x - (CELL_DIMENSIONS.width / 2), drawPosition.y - (CELL_DIMENSIONS.height / 2) - CELL_DIMENSIONS.height,
             8, 8
           )
@@ -235,7 +247,10 @@ function getPlayerSpritePosition (gameState, timestamp, type, overridePushAnimat
       return [x, 8 + ((Math.floor((timestamp - gameState.playerStartedMovingTimestamp) / 200) % 6) * 8) + yOffset]
     }
   } else {
-    return [x, 7 * 8 + (gameState.playerJumpingDir > 0 ? 8 : 0)]
+    return [x + 5 * 8, (gameState.playerJumpingDir > 0
+      ? 8 + (gameState.player.velocity.y > 9 ? (gameState.player.velocity.y > 13 ? 2 : 1) : 0) * 8
+      : 0
+    )]
   }
 }
 

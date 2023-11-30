@@ -4,10 +4,10 @@ const LEVEL_MAP = `
 ##┃┗━━━━━┛##┃┗┓###┃┏┛####┃
 ━━┛#########┗━┛###┗┛#####┃
 ┓##############...#######┃
-┃##...####...*..........#┃
-┃#.....##....*..........#┃
-┃#.....##..###.....**...#┃
-┃#.....###.........###..#┃
+┃##3.3####...*..........#┃
+┃#.2.2.##....*..........#┃
+┃#42.24##..###.....**...#┃
+┃#.1D1.###.........###..#┃
 ┃############..........##┃
 ┛##########┏┓.........###┃
 ━┓####┏━━━━┛┃...*.....###┃
@@ -24,10 +24,10 @@ const LEVEL_MAP_2 = `
 ┃#######...##.*##.##┃┃######┃
 ┃#######....#.*..##┏┛┃######┃
 ┃#######....#.###.#┃┏┛######┃
-┃##...*...........#┃┃##...##┃
-┃#....*...........#┃┃#.....#┃
-┃#..###......**...#┃┃#.....#┃
-┃##..........###..#┃┃#.....#┃
+┃##...*...........#┃┃##3.3##┃
+┃#....*...........#┃┃#.2.2.#┃
+┃#..###......**...#┃┃#42.24#┃
+┃##..........###..#┃┃#.1D1.#┃
 ┃#.###...........##┗┛#######┃
 ┃#.###..........##.#########┃
 ┃#.###......*...*qte┏┓######┃
@@ -44,14 +44,20 @@ export const OBJECT_TYPES = {
   PathUp: 0b00010000,
   PathRight: 0b00100000,
   PathDown: 0b01000000,
-  PathLeft: 0b10000000
+  PathLeft: 0b10000000,
+  PillarTop: 0b000100000000,
+  PillarMiddle: 0b001000000000,
+  PillarBottom: 0b010000000000,
+  Alcove: 0b100000000000,
+  Door: 0b1000000000000,
 }
 
 export const OBJECT_GROUPS = {
   Solid: OBJECT_TYPES.Wall | OBJECT_TYPES.Box,
   Pushable: OBJECT_TYPES.Box,
   Static: OBJECT_TYPES.Wall,
-  Path: OBJECT_TYPES.PathUp | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathDown | OBJECT_TYPES.PathLeft
+  Path: OBJECT_TYPES.PathUp | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathDown | OBJECT_TYPES.PathLeft,
+  Decoration: OBJECT_TYPES.PillarTop | OBJECT_TYPES.PillarMiddle | OBJECT_TYPES.PillarBottom  | OBJECT_TYPES.Alcove | OBJECT_TYPES.Door
 }
 
 const OBJECT_CHARACTER_MAP = {
@@ -70,6 +76,14 @@ const OBJECT_CHARACTER_MAP = {
   'e': OBJECT_TYPES.Box | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathDown,
   'r': OBJECT_TYPES.Box | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathUp,
   't': OBJECT_TYPES.Box | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathLeft,
+  'e': OBJECT_TYPES.Box | OBJECT_TYPES.PathLeft | OBJECT_TYPES.PathDown,
+  'r': OBJECT_TYPES.Box | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathUp,
+  't': OBJECT_TYPES.Box | OBJECT_TYPES.PathRight | OBJECT_TYPES.PathLeft,
+  '1': OBJECT_TYPES.PillarBottom,
+  '2': OBJECT_TYPES.PillarMiddle,
+  '3': OBJECT_TYPES.PillarTop,
+  '4': OBJECT_TYPES.Alcove,
+  'D': OBJECT_TYPES.Door,
 }
 
 class Level {
