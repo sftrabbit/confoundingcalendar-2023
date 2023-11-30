@@ -223,6 +223,10 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
         gameState.downPushStartTimestamp = null
       }
 
+      if (verticalMovement == null) {
+        gameState.upPushActualStartTimestamp = null
+        gameState.downPushActualStartTimestamp = null
+      }
     } else {
       gameState.upPushStartTimestamp = null
       gameState.downPushStartTimestamp = null

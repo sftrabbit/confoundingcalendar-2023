@@ -32,7 +32,7 @@ export function applyRules(gameState, event) {
         fromPosition: { x, y },
         toPosition: { x, y },
         objectTypes: level.data[y][x],
-        durationSeconds: 0.2
+        durationSeconds: 0.1
       })
 
       if (level.data[y][x] & OBJECT_TYPES.Box) {
@@ -111,12 +111,25 @@ export function applyRules(gameState, event) {
     animations[eyeAnimationIndex].toPosition.x = nextPosition.x
     animations[eyeAnimationIndex].toPosition.y = nextPosition.y
 
+    const growPosition = {
+      x: (gameState.plant.position.x + nextPosition.x) / 2,
+      y: (gameState.plant.position.y + nextPosition.y) / 2
+    }
+
     if (enteringExistingPath) {
       gameState.plantMovementFrom = oppositeMovement
+      animations[eyeAnimationIndex].duration = 0.1
       // Automated movement
       return [{ type: 'again' }, event.type !== 'again', animations]
     } else {
       gameState.plantMovementFrom = null
+      animations.push({
+        fromPosition: growPosition,
+        toPosition: growPosition,
+        objectTypes: 'grow',
+        durationSeconds: 0.03,
+        type: movement
+      })
     }
 
     // Normal movement
@@ -350,7 +363,16 @@ export function applyRules(gameState, event) {
         gameState.isPlant = true
         gameState.lastGroundPosition = null
         gameState.plantMovementFrom = OPPOSITE_MOVEMENTS[event.dir]
-        return [{ type: 'again' }, true, null]
+
+        animations[playerAnimationIndex] = {
+          fromPosition: { x: event.position.x, y: event.position.y },
+          toPosition:  { x: event.position.x, y: event.position.y },
+          objectTypes: 'enter',
+          durationSeconds: 0.1,
+          type: event.dir
+        }
+
+        return [{ type: 'again' }, true, animations]
       }
     }
   }
@@ -362,6 +384,11 @@ export function applyRules(gameState, event) {
     }
     animations[playerAnimationIndex].type = 'push'
     gameState.player.position.x = animations[playerAnimationIndex].toPosition.x
+    for (const animation of animations) {
+      if (animation.objectTypes & OBJECT_TYPES.Box) {
+        animation.durationSeconds = 0.2
+      }
+    }
     return [{ type: 'again' }, true, animations]
   }
 

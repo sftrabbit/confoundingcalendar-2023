@@ -173,6 +173,27 @@ class Renderer {
             }
           }
         }
+      } else if (visual.objectTypes === 'grow') {
+        const spriteX = ((visual.type === MOVEMENT.Down) ? 0 : ((visual.type === MOVEMENT.Left) ? 1 : ((visual.type === MOVEMENT.Up) ? 2 : 3)))
+        const frame = Math.floor((timestamp - visual.startTimestamp) / 80)
+        this.renderContext.drawImage(
+          this.spritesheet,
+          (5 + spriteX) * 8, (6 + frame) * 8, 8, 8,
+          drawPosition.x + ((visual.type === MOVEMENT.Left) ? 4 : ((visual.type === MOVEMENT.Right) ? -4 : 0)),
+          drawPosition.y + ((visual.type === MOVEMENT.Down) ? -4 : ((visual.type === MOVEMENT.Up) ? 4 : 0)),
+          8, 8
+        )
+      } else if (visual.objectTypes === 'enter') {
+        const yOffset = (visual.type & (MOVEMENT.Down | MOVEMENT.Up)) ? (gameState.playerFacing === MOVEMENT.Right ? 3 : 0) : 0
+        const xOffset = (visual.type === MOVEMENT.Down ? 0 : (visual.type === MOVEMENT.Up ? 1 : (visual.type === MOVEMENT.Right ? 2 : 3)))
+        const frame = Math.floor((timestamp - visual.startTimestamp) / 60)
+        this.renderContext.drawImage(
+          this.spritesheet,
+          (5 + xOffset) * 8, (10 + yOffset + frame) * 8, 8, 8,
+          drawPosition.x,
+          drawPosition.y,
+          8, 8
+        )
       } else {
         const playerSpriteSourcePosition = getPlayerSpritePosition(gameState, timestamp, visual.type, overridePushAnimation)
         this.renderContext.drawImage(
@@ -181,7 +202,7 @@ class Renderer {
           drawPosition.x - (CELL_DIMENSIONS.width / 2), drawPosition.y - (CELL_DIMENSIONS.height / 2),
           8, 8
         )
-        if (playerSpriteSourcePosition[0] >= (5 * 8) && playerSpriteSourcePosition[1] >= 2 * 8) {
+        if (playerSpriteSourcePosition[0] >= (5 * 8) && playerSpriteSourcePosition[1] >= 2 * 8 && playerSpriteSourcePosition[1] <= 4 * 8) {
           this.renderContext.drawImage(
             this.spritesheet,
             playerSpriteSourcePosition[0], playerSpriteSourcePosition[1] + 2 * 8, 8, 8,
@@ -232,7 +253,13 @@ function getPlayerSpritePosition (gameState, timestamp, type, overridePushAnimat
   const x = gameState.playerFacing === MOVEMENT.Right ? 0 : 8
   if (gameState.playerJumpingDir == null) {
     if (gameState.playerStartedMovingTimestamp == null || overridePushAnimation) {
-      return [x, 0]
+      if (gameState.downPushActualStartTimestamp != null) {
+        return [5 * 8, (9 + (gameState.playerFacing === MOVEMENT.Right) * 3)* 8]
+      } else if (gameState.upPushActualStartTimestamp != null) {
+        return [6 * 8, (9 + (gameState.playerFacing === MOVEMENT.Right) * 3) * 8]
+      } else {
+        return [x, 0]
+      }
     } else {
       let yOffset = 0
       if (type === 'push') {

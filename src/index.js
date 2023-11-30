@@ -63,8 +63,12 @@ window.onload = () => {
 
         gameState.pushHappening = null
 
+        if (gameState.isPlant) {
+          inputHandler.jumpQueued = false
+        }
+
         if (animationHandler.hasPendingTransactions()) {
-          if (inputHandler.jumpQueued || inputHandler.directionalMovement != null) {
+          if (inputHandler.jumpQueued|| inputHandler.directionalMovement != null) {
             animationHandler.clear()
           }
         }
@@ -250,6 +254,7 @@ function interpolateVisuals (activeTransaction, timestamp) {
 
       visuals.push({
         startTimestamp: animation.startTimestamp,
+        endTimestamp: animation.endTimestamp,
         position: {
           x: tween(animation.fromPosition.x, vector.x, t),
           y: tween(animation.fromPosition.y, vector.y, t)
