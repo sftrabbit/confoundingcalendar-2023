@@ -7,6 +7,8 @@ import { applyRules } from './rules'
 import AnimationHandler from './animation'
 
 window.onload = () => {
+  window.oncontextmenu = function() { return false; }
+
   const level = new Level()
   const gameState = new GameState(level)
   
@@ -53,11 +55,22 @@ window.onload = () => {
           inputHandler.restart = false
         }
 
-        if (inputHandler.undo) {
-          const restoreState = undoStack.length > 1 ? undoStack.pop() : undoStack[0]
-          gameState.deserialize(restoreState)
-          animationHandler.clear()
-          inputHandler.undo = false
+        if (inputHandler.undoPressed) {
+          if (gameState.nextUndoTimestamp == null) {
+            gameState.nextUndoTimestamp = timestamp
+          }
+
+          if (timestamp >= gameState.nextUndoTimestamp) {
+            gameState.successiveUndos += 1
+            gameState.nextUndoTimestamp += (gameState.successiveUndos <= 3 ? 500 : (gameState.successiveUndos <= 6) ? 250 : 100)
+
+            const restoreState = undoStack.length > 1 ? undoStack.pop() : undoStack[0]
+            gameState.deserialize(restoreState)
+            animationHandler.clear()
+          }
+        } else {
+          gameState.nextUndoTimestamp = null
+          gameState.successiveUndos = 0
         }
 
         gameState.pushHappening = null

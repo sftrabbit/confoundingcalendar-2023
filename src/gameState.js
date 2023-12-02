@@ -23,6 +23,9 @@ class GameState {
       }
     }
 
+    this.undoPressedTimestamp = null
+    this.successiveUndos = 0
+
     this.reset()
   }
 

@@ -20,7 +20,7 @@ class InputHandler {
     this.skipFrame = false
     this.horizontalMovementStack = []
     this.verticalMovementStack = []
-    this.undo = false
+    this.undoPressed = false
     this.restart = false
     this.directionalMovement = null
     this.renderer = renderer
@@ -73,7 +73,7 @@ class InputHandler {
       this.onDirectionPress(MOVEMENT.Down)
     }
     if (event.key == 'z') {
-      this.undo = true
+      this.undoPressed = true
     }
     if (event.key == 'r') {
       this.restart = true
@@ -102,6 +102,10 @@ class InputHandler {
     }
     if (event.key == 'ArrowDown') {
       this.onDirectionRelease(MOVEMENT.Down)
+    }
+
+    if (event.key === 'z') {
+      this.undoPressed = false
     }
 
     return false
@@ -148,7 +152,7 @@ class InputHandler {
         if (button === 0) {
           this.undoTouchId = touch.identifier
           this.renderer.undoButtonPressed = true
-          this.undo = true
+          this.undoPressed = true
         } else if (button === 1) {
           this.restartTouchId = touch.identifier
           this.renderer.restartButtonPressed = true
@@ -173,6 +177,7 @@ class InputHandler {
     for (const touch of event.changedTouches) {
       if (touch.identifier === this.undoTouchId) {
         this.renderer.undoButtonPressed = false
+        this.undoPressed = false
         this.undoTouchId = null
         continue
       }
@@ -199,8 +204,10 @@ class InputHandler {
         const button = this.evaluateButtonTouch(touch)
         if (button === 0) {
           this.renderer.undoButtonPressed = true
+          this.undoPressed = true
         } else {
           this.renderer.undoButtonPressed = false
+          this.undoPressed = false
         }
         continue
       }
