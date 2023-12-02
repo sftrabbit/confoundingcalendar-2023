@@ -105,7 +105,7 @@ window.onload = () => {
 
             if (timestamp >= gameState.nextUndoTimestamp) {
               gameState.successiveUndos += 1
-              gameState.nextUndoTimestamp += (gameState.successiveUndos <= 3 ? 500 : (gameState.successiveUndos <= 6) ? 250 : 100)
+              gameState.nextUndoTimestamp += (gameState.successiveUndos <= 2 ? 500 : ((gameState.successiveUndos <= 4) ? 350 : ((gameState.successiveUndos <= 6) ? 250 : ((gameState.successiveUndos <= 10) ? 175 : 100))))
 
               const restoreState = undoStack.length > 1 ? undoStack.pop() : undoStack[0]
               gameState.deserialize(restoreState)
