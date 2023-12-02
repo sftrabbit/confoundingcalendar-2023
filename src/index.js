@@ -19,7 +19,7 @@ window.onload = () => {
     const containerElement = document.getElementById('container')
     const renderer = new Renderer(containerElement, gameState, animationHandler, spritesheet)
 
-    const inputHandler = new InputHandler()
+    const inputHandler = new InputHandler(renderer)
 
     let previousTimestamp = null
 

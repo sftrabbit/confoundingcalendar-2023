@@ -7,19 +7,41 @@ export const MOVEMENT = {
 
 // TODO - clear inputs when losing focus on game
 
+const MOVEMENT_TO_KEY = {
+  [MOVEMENT.Up]: 'ArrowUp',
+  [MOVEMENT.Right]: 'ArrowRight',
+  [MOVEMENT.Down]: 'ArrowDown',
+  [MOVEMENT.Left]: 'ArrowLeft',
+}
+
 class InputHandler {
-  constructor () {
+  constructor (renderer) {
     this.jumpQueued = false
     this.skipFrame = false
     this.horizontalMovementStack = []
     this.undo = false
     this.restart = false
+    this.renderer = renderer
+    this.movementTouches = []
 
     document.addEventListener('keydown', (event) => {
       this.onKeyDown(event)
     })
     document.addEventListener('keyup', (event) => {
       this.onKeyUp(event)
+    })
+
+    document.addEventListener('touchstart', (event) => {
+      this.onTouchStart(event)
+    })
+    document.addEventListener('touchend', (event) => {
+      this.onTouchEnd(event)
+    })
+    document.addEventListener('touchcancel', (event) => {
+      this.onTouchEnd(event)
+    })
+    document.addEventListener('touchmove', (event) => {
+      this.onTouchMove(event)
     })
   }
 
@@ -67,6 +89,64 @@ class InputHandler {
     }
   }
 
+  onTouchStart (event) {
+    for (const touch of event.changedTouches) {
+      if (touch.clientX >= Math.floor(this.renderer.screenCanvas.width / 2)) {
+        this.jumpQueued = true
+      } else {
+        const direction = this.evaluateTouch(touch)
+        this.onKeyDown({ key: MOVEMENT_TO_KEY[direction] })
+        this.movementTouches.push({
+          identifier: touch.identifier,
+          direction
+        })
+      }
+    }
+  }
+
+  onTouchEnd (event) {
+    for (const touch of event.changedTouches) {
+      const index = this.movementTouches.findIndex((existingTouch) => existingTouch.identifier === touch.identifier)
+      if (index !== -1) {
+        this.onKeyUp({ key: MOVEMENT_TO_KEY[this.movementTouches[index].direction] })
+        this.movementTouches.splice(index, 1)
+      }
+    }
+  }
+
+  onTouchMove () {
+    for (const touch of event.changedTouches) {
+      const index = this.movementTouches.findIndex((existingTouch) => existingTouch.identifier === touch.identifier)
+      if (index !== -1) {
+        const newDirection = this.evaluateTouch(touch)
+        if (newDirection !== this.movementTouches[index].direction) {
+          this.onKeyUp({ key: MOVEMENT_TO_KEY[this.movementTouches[index].direction] })
+          this.onKeyDown({ key: MOVEMENT_TO_KEY[newDirection] })
+          this.movementTouches[index].direction = newDirection
+        }
+      }
+    }
+  }
+
+  evaluateTouch (touch) {
+    const dpadY = Math.floor(this.renderer.screenCanvas.height / 2)
+
+    const relativeX = touch.clientX - 150
+    const relativeY = touch.clientY - dpadY
+
+    if (Math.abs(relativeX) < 30 && Math.abs(relativeY) < 30) {
+      return null
+    }
+
+    if (Math.abs(relativeX) > Math.abs(relativeY)) {
+      return relativeX > 0 ? MOVEMENT.Right : MOVEMENT.Left
+    } else {
+      return relativeY > 0 ? MOVEMENT.Down : MOVEMENT.Up
+    }
+
+    return null
+  }
+
   getHorizontalMovement () {
     if (this.horizontalMovementStack.length === 0) {
       return null
@@ -74,6 +154,10 @@ class InputHandler {
 
     return this.horizontalMovementStack[this.horizontalMovementStack.length - 1]
   }
+}
+
+function copyTouch({ identifier, clientX, clientY }) {
+  return { identifier, clientX, clientY };
 }
 
 export default InputHandler

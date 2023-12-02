@@ -153,6 +153,20 @@ class Renderer {
       this.renderCanvas.width * scaleFactor, this.renderCanvas.height * scaleFactor
     )
 
+    // const touchDpadCenterY = Math.floor(this.screenCanvas.height / 2)
+    // const touchDpadCenterX = 150
+ 
+    // this.screenContext.beginPath()
+    // this.screenContext.fillStyle = '#ff000088'
+    // this.screenContext.rect(0, 0, touchDpadCenterX * 2, this.screenCanvas.height)
+    // this.screenContext.fill()
+ 
+    // this.screenContext.beginPath()
+    // this.screenContext.fillStyle = '#00ff0088'
+    // this.screenContext.rect(Math.floor(this.screenCanvas.width / 2), 0, Math.floor(this.screenCanvas.width / 2), this.screenCanvas.height)
+    // this.screenContext.fill()
+
+
     this.screenContext.restore()
     this.renderContext.restore()
   }
