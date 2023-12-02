@@ -23,6 +23,8 @@ class InputHandler {
     this.restart = false
     this.renderer = renderer
     this.movementTouches = []
+    this.undoTouchId = null
+    this.restartTouchId = null
 
     document.addEventListener('keydown', (event) => {
       this.onKeyDown(event)
@@ -92,7 +94,18 @@ class InputHandler {
   onTouchStart (event) {
     for (const touch of event.changedTouches) {
       if (touch.clientX >= Math.floor(this.renderer.screenCanvas.width / 2)) {
-        this.jumpQueued = true
+        const button = this.evaluateButtonTouch(touch)
+        if (button === 0) {
+          this.undoTouchId = touch.identifier
+          this.renderer.undoButtonPressed = true
+          this.undo = true
+        } else if (button === 1) {
+          this.restartTouchId = touch.identifier
+          this.renderer.restartButtonPressed = true
+          this.restart = true
+        } else {
+          this.jumpQueued = true
+        }
       } else {
         const direction = this.evaluateTouch(touch)
         this.onKeyDown({ key: MOVEMENT_TO_KEY[direction] })
@@ -106,6 +119,17 @@ class InputHandler {
 
   onTouchEnd (event) {
     for (const touch of event.changedTouches) {
+      if (touch.identifier === this.undoTouchId) {
+        this.renderer.undoButtonPressed = false
+        this.undoTouchId = null
+        continue
+      }
+      if (touch.identifier === this.restartTouchId) {
+        this.renderer.restartButtonPressed = false
+        this.restartTouchId = null
+        continue
+      }
+
       const index = this.movementTouches.findIndex((existingTouch) => existingTouch.identifier === touch.identifier)
       if (index !== -1) {
         this.onKeyUp({ key: MOVEMENT_TO_KEY[this.movementTouches[index].direction] })
@@ -116,6 +140,25 @@ class InputHandler {
 
   onTouchMove () {
     for (const touch of event.changedTouches) {
+      if (touch.identifier === this.undoTouchId) {
+        const button = this.evaluateButtonTouch(touch)
+        if (button === 0) {
+          this.renderer.undoButtonPressed = true
+        } else {
+          this.renderer.undoButtonPressed = false
+        }
+        continue
+      }
+      if (touch.identifier === this.restartTouchId) {
+        const button = this.evaluateButtonTouch(touch)
+        if (button === 1) {
+          this.renderer.restartButtonPressed = true
+        } else {
+          this.renderer.restartButtonPressed = false
+        }
+        continue
+      }
+
       const index = this.movementTouches.findIndex((existingTouch) => existingTouch.identifier === touch.identifier)
       if (index !== -1) {
         const newDirection = this.evaluateTouch(touch)
@@ -145,6 +188,24 @@ class InputHandler {
     }
 
     return null
+  }
+
+  evaluateButtonTouch (touch) {
+    const undoButtonX = this.renderer.screenCanvas.width - (5 + 24) * this.renderer.scaleFactor * 2
+    const restartButtonX = this.renderer.screenCanvas.width - (5 + 24) * this.renderer.scaleFactor
+
+    const buttonY = 5 * this.renderer.scaleFactor
+    const buttonWidth = 24 * this.renderer.scaleFactor
+
+    if (touch.clientY >= buttonY && touch.clientY < buttonY + buttonWidth) {
+      if (touch.clientX >= undoButtonX && touch.clientX < undoButtonX + buttonWidth) {
+        return 0
+      } else if (touch.clientX >= restartButtonX && touch.clientX < restartButtonX + buttonWidth) {
+        return 1
+      }
+    }
+
+    return -1
   }
 
   getHorizontalMovement () {
