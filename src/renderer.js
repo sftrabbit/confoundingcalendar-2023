@@ -38,6 +38,9 @@ class Renderer {
     this.undoButtonPressed = false
     this.restartButtonPressed = false
     this.showTouchControls = false
+
+    this.showDpadPrompt = false
+    this.showJumpPrompt = false
   }
 
   render (gameState, visuals, timestamp, overridePushAnimation) {
@@ -302,6 +305,36 @@ class Renderer {
         this.screenCanvas.width - (5 + 24) * this.scaleFactor, 5 * this.scaleFactor,
         24 * this.scaleFactor, 24 * this.scaleFactor
       )
+
+      const dpadY = Math.floor(this.screenCanvas.height / 2)
+      const dpadX = 130
+
+      const dpadWidth = 39
+
+      if (this.showDpadPrompt) {
+        this.screenContext.drawImage(
+          this.spritesheet,
+          8 * 8, 20 * 8,
+          dpadWidth, dpadWidth,
+          dpadX - Math.floor(dpadWidth / 2) * this.scaleFactor,
+          dpadY - Math.floor(dpadWidth / 2) * this.scaleFactor,
+          dpadWidth * this.scaleFactor, dpadWidth * this.scaleFactor
+        )
+      }
+
+      if (this.showJumpPrompt) {
+        const jumpButtonWidth = 38
+        const jumpButtonHeight = 15
+
+        this.screenContext.drawImage(
+          this.spritesheet,
+          2 * 8, 23 * 8,
+          jumpButtonWidth, jumpButtonHeight,
+          this.screenCanvas.width - dpadX - Math.floor(jumpButtonWidth / 2) * this.scaleFactor,
+          dpadY - Math.floor(jumpButtonHeight / 2) * this.scaleFactor,
+          jumpButtonWidth * this.scaleFactor, jumpButtonHeight * this.scaleFactor
+        )
+      }
     } else {
       this.screenContext.drawImage(
         this.spritesheet,
@@ -312,8 +345,7 @@ class Renderer {
       )
     }
 
-    // const dpadY = Math.floor(this.screenCanvas.height / 2)
-    // const dpadX = 150
+
 
     // this.screenContext.beginPath()
     // this.screenContext.fillStyle = '#ff000088'

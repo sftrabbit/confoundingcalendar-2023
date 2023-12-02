@@ -30,6 +30,15 @@ window.onload = () => {
 
     let nextFrameEvent = null
 
+    let needDpadPrompt = true
+    let needJumpPrompt = true
+
+    let hideDpadPromptTimestamp = null
+    let hideJumpPromptTimestamp = null
+
+    let requiredMovementPresses = 0
+    let requiredJumpPresses = 0
+
     const tick = (timestamp) => {
       if (previousTimestamp != null) {
         let deltaTime = timestamp - previousTimestamp
@@ -43,6 +52,25 @@ window.onload = () => {
         }
 
         const fps = 1000 / deltaTime
+
+        if (needDpadPrompt) {
+          needDpadPrompt = false
+          renderer.showDpadPrompt = true
+        }
+
+        if (needJumpPrompt && !gameState.isPlant && gameState.lastOnGroundTimestamp !== 0) {
+          needJumpPrompt = false
+          renderer.showJumpPrompt = true
+          requiredMovementPresses = inputHandler.movementPressCount + 10
+          requiredJumpPresses = inputHandler.jumpPressCount + 3
+        }
+
+        if (!needDpadPrompt && !needJumpPrompt && renderer.showJumpPrompt) {
+          if (inputHandler.jumpPressCount >= requiredJumpPresses && inputHandler.movementPressCount >= requiredMovementPresses) {
+            renderer.showDpadPrompt = false
+            renderer.showJumpPrompt = false
+          }
+        }
 
         if (inputHandler.restart) {
           const priorState = gameState.serialize()

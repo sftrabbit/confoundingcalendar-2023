@@ -13,6 +13,7 @@ const MOVEMENT_TO_KEY = {
 }
 
 // TODO - clear inputs when losing focus on game
+// TODO - remove frame skip button
 
 class InputHandler {
   constructor (renderer) {
@@ -27,6 +28,9 @@ class InputHandler {
     this.movementTouches = []
     this.undoTouchId = null
     this.restartTouchId = null
+
+    this.movementPressCount = 0
+    this.jumpPressCount = 0
 
     document.addEventListener('keydown', (event) => {
       this.onKeyDown(event)
@@ -60,7 +64,7 @@ class InputHandler {
     event.preventDefault()
 
     if (event.key == 'ArrowUp') {
-      this.jumpQueued = true
+      this.onJumpPress()
       this.onDirectionPress(MOVEMENT.Up)
     }
     if (event.key == 'ArrowLeft') {
@@ -112,6 +116,8 @@ class InputHandler {
   }
 
   onDirectionPress (direction) {
+    this.movementPressCount += 1
+
     if (direction === MOVEMENT.Up || direction === MOVEMENT.Down) {
       if (this.verticalMovementStack.indexOf(direction) === -1) {
         this.verticalMovementStack.push(direction)
@@ -143,6 +149,11 @@ class InputHandler {
     }
   }
 
+  onJumpPress () {
+    this.jumpPressCount += 1
+    this.jumpQueued = true
+  }
+
   onTouchStart (event) {
     this.renderer.showTouchControls = true
 
@@ -158,7 +169,7 @@ class InputHandler {
           this.renderer.restartButtonPressed = true
           this.restart = true
         } else {
-          this.jumpQueued = true
+          this.onJumpPress()
         }
       } else {
         const direction = this.evaluateMovementTouch(touch)
@@ -237,10 +248,10 @@ class InputHandler {
   evaluateMovementTouch (touch) {
     const dpadY = Math.floor(this.renderer.screenCanvas.height / 2)
 
-    const relativeX = touch.clientX - 150
+    const relativeX = touch.clientX - 130
     const relativeY = touch.clientY - dpadY
 
-    if (Math.abs(relativeX) < 30 && Math.abs(relativeY) < 30) {
+    if (Math.abs(relativeX) < 15 && Math.abs(relativeY) < 15) {
       return null
     }
 
