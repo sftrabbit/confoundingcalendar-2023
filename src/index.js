@@ -61,10 +61,6 @@ window.onload = () => {
       if (previousTimestamp != null) {
         let deltaTime = timestamp - previousTimestamp
 
-        if (inputHandler.skipFrame) {
-          deltaTime *= 10
-        }
-
         if (deltaTime > 50) {
           deltaTime = 50
         }

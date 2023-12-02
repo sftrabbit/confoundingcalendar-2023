@@ -13,12 +13,10 @@ const MOVEMENT_TO_KEY = {
 }
 
 // TODO - clear inputs when losing focus on game
-// TODO - remove frame skip button
 
 class InputHandler {
   constructor (renderer) {
     this.jumpQueued = false
-    this.skipFrame = false
     this.horizontalMovementStack = []
     this.verticalMovementStack = []
     this.undoPressed = false
@@ -88,9 +86,6 @@ class InputHandler {
     }
     if (event.key == 'r') {
       this.restart = true
-    }
-    if (event.key == 'b') {
-      this.skipFrame = true
     }
 
     return false
