@@ -1,6 +1,13 @@
 import { MOVEMENT } from './input'
 import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 
+export const STATE = {
+  Title: 0,
+  Intro: 1,
+  Play: 2,
+  End: 3
+}
+
 class GameState {
   constructor (level) {
     this.level = level
@@ -18,13 +25,17 @@ class GameState {
 
     this.plant = {
       position: {
-        x: 9,
-        y: 1
+        x: 8,
+        y: 0
       }
     }
 
     this.undoPressedTimestamp = null
     this.successiveUndos = 0
+
+    this.gameState = STATE.Title
+    this.introTimestamp = null
+    this.endTimestamp = null
 
     this.reset()
   }
@@ -61,7 +72,6 @@ class GameState {
     this.plantEyeDir = MOVEMENT.Down
 
     this.dead = false
-    this.gameState = false
   }
 
   serialize (playerPosition, playerFacing) {

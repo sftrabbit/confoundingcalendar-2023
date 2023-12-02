@@ -29,8 +29,11 @@ class InputHandler {
     this.undoTouchId = null
     this.restartTouchId = null
 
+    this.countInputs = false
     this.movementPressCount = 0
     this.jumpPressCount = 0
+
+    this.initialInput = false
 
     document.addEventListener('keydown', (event) => {
       this.onKeyDown(event)
@@ -55,6 +58,10 @@ class InputHandler {
 
   onKeyDown (event) {
     this.renderer.showTouchControls = false
+
+    if (!this.initialInput) {
+      this.initialInput = true
+    }
 
     if (event.repeat) {
       return
@@ -116,7 +123,9 @@ class InputHandler {
   }
 
   onDirectionPress (direction) {
-    this.movementPressCount += 1
+    if (this.countInputs) {
+      this.movementPressCount += 1
+    }
 
     if (direction === MOVEMENT.Up || direction === MOVEMENT.Down) {
       if (this.verticalMovementStack.indexOf(direction) === -1) {
@@ -150,12 +159,18 @@ class InputHandler {
   }
 
   onJumpPress () {
-    this.jumpPressCount += 1
+    if (this.countInputs) {
+      this.jumpPressCount += 1
+    }
     this.jumpQueued = true
   }
 
   onTouchStart (event) {
     this.renderer.showTouchControls = true
+
+    if (!this.initialInput) {
+      this.initialInput = true
+    }
 
     for (const touch of event.changedTouches) {
       if (touch.clientX >= Math.floor(this.renderer.screenCanvas.width / 2)) {

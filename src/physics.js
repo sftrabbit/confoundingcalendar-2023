@@ -1,5 +1,6 @@
 import { MOVEMENT } from './input'
 import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
+import { STATE } from './gameState'
 
 const WALK_VELOCITY_CELLS_PER_SECOND = 3.5
 const JUMP_VELOCITY_CELLS_PER_SECOND = 7
@@ -36,7 +37,8 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     if (level.hasObject(playerCellPosition, OBJECT_TYPES.Door)) {
       const event = { type: 'end' }
       inputHandler.directionalMovement = null
-      gameState.end = timestamp
+      gameState.gameState = STATE.End
+      gameState.endTimestamp = timestamp
       return { event, physicsChanged: false } 
     }
   }

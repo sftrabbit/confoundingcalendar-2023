@@ -1,5 +1,5 @@
 import InputHandler, { MOVEMENT } from './input'
-import GameState from './gameState'
+import GameState, { STATE } from './gameState'
 import { updatePhysics, GRAVITY_CELLS_PER_SECOND_2 } from './physics'
 import Renderer from './renderer'
 import Level, { OBJECT_TYPES, OBJECT_GROUPS } from './level'
@@ -25,8 +25,7 @@ window.onload = () => {
 
     let previousTimestamp = null
 
-    const startState = gameState.serialize()
-    const undoStack = [startState]
+    const undoStack = []
 
     let nextFrameEvent = null
 
@@ -38,6 +37,25 @@ window.onload = () => {
 
     let requiredMovementPresses = 0
     let requiredJumpPresses = 0
+
+    let introMovements = [
+      MOVEMENT.Left, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Left, MOVEMENT.Left,
+      MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left,
+      MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down,
+      MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down,
+      MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right,
+      MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Right, MOVEMENT.Down, MOVEMENT.Down, MOVEMENT.Down,
+      MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right,
+      MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left,
+      MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Right, MOVEMENT.Down,
+      MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right, MOVEMENT.Right,
+      MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up,
+      MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Left,
+      MOVEMENT.Down, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Up, MOVEMENT.Left, MOVEMENT.Left, MOVEMENT.Down
+    ]
+
+    let introMovementIndex = 0
+    let nextIntroMovementTimestamp = null
 
     const tick = (timestamp) => {
       if (previousTimestamp != null) {
@@ -53,67 +71,98 @@ window.onload = () => {
 
         const fps = 1000 / deltaTime
 
-        if (needDpadPrompt) {
-          needDpadPrompt = false
-          renderer.showDpadPrompt = true
-        }
-
-        if (needJumpPrompt && !gameState.isPlant && gameState.lastOnGroundTimestamp !== 0) {
-          needJumpPrompt = false
-          renderer.showJumpPrompt = true
-          requiredMovementPresses = inputHandler.movementPressCount + 10
-          requiredJumpPresses = inputHandler.jumpPressCount + 3
-        }
-
-        if (!needDpadPrompt && !needJumpPrompt && renderer.showJumpPrompt) {
-          if (inputHandler.jumpPressCount >= requiredJumpPresses && inputHandler.movementPressCount >= requiredMovementPresses) {
-            renderer.showDpadPrompt = false
-            renderer.showJumpPrompt = false
-          }
-        }
-
-        if (inputHandler.restart) {
-          const priorState = gameState.serialize()
-
-          const restoreState = undoStack[0]
-          gameState.deserialize(restoreState)
-
-          undoStack.push(priorState)
-          animationHandler.clear()
-          inputHandler.restart = false
-        }
-
-        if (inputHandler.undoPressed) {
-          if (gameState.nextUndoTimestamp == null) {
-            gameState.nextUndoTimestamp = timestamp
+        if (gameState.gameState === STATE.Play) {
+          if (needDpadPrompt) {
+            needDpadPrompt = false
+            renderer.showDpadPrompt = true
           }
 
-          if (timestamp >= gameState.nextUndoTimestamp) {
-            gameState.successiveUndos += 1
-            gameState.nextUndoTimestamp += (gameState.successiveUndos <= 3 ? 500 : (gameState.successiveUndos <= 6) ? 250 : 100)
+          if (needJumpPrompt && !gameState.isPlant && gameState.lastOnGroundTimestamp !== 0) {
+            needJumpPrompt = false
+            renderer.showJumpPrompt = true
+            requiredMovementPresses = inputHandler.movementPressCount + 10
+            requiredJumpPresses = inputHandler.jumpPressCount + 3
+          }
 
-            const restoreState = undoStack.length > 1 ? undoStack.pop() : undoStack[0]
+          if (!needDpadPrompt && !needJumpPrompt && renderer.showJumpPrompt) {
+            if (inputHandler.jumpPressCount >= requiredJumpPresses && inputHandler.movementPressCount >= requiredMovementPresses) {
+              renderer.showDpadPrompt = false
+              renderer.showJumpPrompt = false
+            }
+          }
+
+          if (inputHandler.restart) {
+            const priorState = gameState.serialize()
+
+            const restoreState = undoStack[0]
             gameState.deserialize(restoreState)
+
+            undoStack.push(priorState)
             animationHandler.clear()
+            inputHandler.restart = false
+          }
+
+          if (inputHandler.undoPressed) {
+            if (gameState.nextUndoTimestamp == null) {
+              gameState.nextUndoTimestamp = timestamp
+            }
+
+            if (timestamp >= gameState.nextUndoTimestamp) {
+              gameState.successiveUndos += 1
+              gameState.nextUndoTimestamp += (gameState.successiveUndos <= 3 ? 500 : (gameState.successiveUndos <= 6) ? 250 : 100)
+
+              const restoreState = undoStack.length > 1 ? undoStack.pop() : undoStack[0]
+              gameState.deserialize(restoreState)
+              animationHandler.clear()
+            }
+          } else {
+            gameState.nextUndoTimestamp = null
+            gameState.successiveUndos = 0
+          }
+
+          gameState.pushHappening = null
+
+          if (gameState.isPlant) {
+            inputHandler.jumpQueued = false
           }
         } else {
-          gameState.nextUndoTimestamp = null
-          gameState.successiveUndos = 0
-        }
-
-        gameState.pushHappening = null
-
-        if (gameState.isPlant) {
           inputHandler.jumpQueued = false
+          inputHandler.restart = false
+          inputHandler.verticalMovementStack = []
+          inputHandler.horizontalMovement = []
+          inputHandler.directionalMovement = null
+
+          if (gameState.gameState === STATE.Title) {
+            if (inputHandler.initialInput) {
+              gameState.introTimestamp = timestamp
+              gameState.gameState = STATE.Intro
+              nextIntroMovementTimestamp = timestamp + 1000
+            }
+          } else if (gameState.gameState === STATE.Intro) {
+            if (timestamp >= nextIntroMovementTimestamp) {
+              if (introMovementIndex < introMovements.length) {
+                const movement = introMovements[introMovementIndex]
+                nextFrameEvent = null
+                inputHandler.directionalMovement = movement
+                introMovementIndex += 1
+                nextIntroMovementTimestamp += 70 + Math.floor((1 - (Math.min(10, introMovements.length - introMovementIndex) / 10)) * 200)
+              } else {
+                gameState.gameState = STATE.Play
+                inputHandler.countInputs = true
+                const startState = gameState.serialize()
+                undoStack.push(startState)
+              }
+            }
+          }
         }
 
         if (animationHandler.hasPendingTransactions()) {
-          if (inputHandler.jumpQueued|| inputHandler.directionalMovement != null) {
+          if (inputHandler.jumpQueued || inputHandler.directionalMovement != null) {
             animationHandler.clear()
           }
         }
 
-        if (!(animationHandler.hasPendingTransactions() || gameState.dead || gameState.end)) {
+        if (!(animationHandler.hasPendingTransactions() || gameState.dead || gameState.gameState === STATE.End)) {
           const priorGroundPosition = gameState.lastGroundPosition
           const priorGroundFacing = gameState.lastGroundFacing
 
@@ -152,7 +201,7 @@ window.onload = () => {
               animationHandler.queueTransaction(animations)
             }
 
-            if (rulesChanged && event.type !== 'again') {
+            if (rulesChanged && event.type !== 'again' && gameState.gameState === STATE.Play) {
               undoStack.push(priorState)
             }
           } else {
@@ -230,7 +279,7 @@ window.onload = () => {
 function getStaticTransaction(gameState, timestamp) {
   const level = gameState.level
 
-  const transaction = (gameState.isPlant || gameState.end) ? [] : [{
+  const transaction = (gameState.isPlant || gameState.gameState === STATE.End) ? [] : [{
     fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     objectTypes: null,

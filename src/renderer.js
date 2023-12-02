@@ -1,5 +1,6 @@
 import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 import { MOVEMENT } from './input'
+import { STATE } from './gameState'
 
 const CELL_DIMENSIONS = {
   width: 8,
@@ -229,10 +230,18 @@ class Renderer {
         }
       }
     }
-
-    if (gameState.end) {
-      if (timestamp > (gameState.end + 1000)) {
-        const frame = Math.min(5, Math.floor((timestamp - (gameState.end + 1000)) / 100))
+    // this.renderContext.fillStyle = '#ff0000'
+    // this.renderContext.beginPath()
+    // this.renderContext.arc(
+    //   Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width), Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height),
+    //   CELL_DIMENSIONS.height / 2,
+    //   0, 2 * Math.PI
+    // )
+    // this.renderContext.fill()
+    // this.renderContext.closePath()
+    if (gameState.gameState === STATE.End) {
+      if (timestamp > (gameState.endTimestamp + 1000)) {
+        const frame = Math.min(5, Math.floor((timestamp - (gameState.endTimestamp + 1000)) / 100))
         for (let x = 0; x < gameState.level.width; x++) {
           for (let y = 0; y < gameState.level.height; y++) {
             const drawPosition = {
@@ -249,7 +258,7 @@ class Renderer {
         }
       }
 
-      if (timestamp > (gameState.end + 2000)) {
+      if (timestamp > (gameState.endTimestamp + 2000)) {
         this.renderContext.drawImage(
           this.spritesheet,
           2 * 8, 16 * 8, 9 * CELL_DIMENSIONS.width, 8,
@@ -257,17 +266,27 @@ class Renderer {
           9 * CELL_DIMENSIONS.width, 8
         )
       }
+    } else if (gameState.gameState === STATE.Intro) {
+      if (timestamp >= gameState.introTimestamp) {
+        const frame = 5 - Math.min(6, Math.floor((timestamp - gameState.introTimestamp) / 100))
+        if (frame >= 0) {
+          for (let x = 0; x < gameState.level.width; x++) {
+            for (let y = 0; y < gameState.level.height; y++) {
+              const drawPosition = {
+                x: x * CELL_DIMENSIONS.width,
+                y: y * CELL_DIMENSIONS.height
+              }
+              this.renderContext.drawImage(
+                this.spritesheet,
+                10 * 8, frame * 8, 8, 8,
+                drawPosition.x, drawPosition.y,
+                8, 8
+              )
+            }
+          }
+        }
+      }
     }
-
-    // this.renderContext.fillStyle = '#ff0000'
-    // this.renderContext.beginPath()
-    // this.renderContext.arc(
-    //   Math.floor(gameState.player.position.x * CELL_DIMENSIONS.width), Math.floor(gameState.player.position.y * CELL_DIMENSIONS.height),
-    //   CELL_DIMENSIONS.height / 2,
-    //   0, 2 * Math.PI
-    // )
-    // this.renderContext.fill()
-    // this.renderContext.closePath()
 
     const screenAspectRatio = this.screenCanvas.clientWidth / this.screenCanvas.clientHeight
     const renderAspectRatio = gameState.level.width / gameState.level.height
@@ -289,63 +308,76 @@ class Renderer {
       this.renderCanvas.width * this.scaleFactor, this.renderCanvas.height * this.scaleFactor
     )
 
-    if (this.showTouchControls) {
-      this.screenContext.drawImage(
-        this.spritesheet,
-        2 * 8, 17 * 8 + 24 * this.undoButtonPressed,
-        24, 24,
-        this.screenCanvas.width - (5 + 24) * this.scaleFactor * 2, 5 * this.scaleFactor,
-        24 * this.scaleFactor, 24 * this.scaleFactor
-      )
-
-      this.screenContext.drawImage(
-        this.spritesheet,
-        5 * 8, 17 * 8 + 24 * this.restartButtonPressed,
-        24, 24,
-        this.screenCanvas.width - (5 + 24) * this.scaleFactor, 5 * this.scaleFactor,
-        24 * this.scaleFactor, 24 * this.scaleFactor
-      )
-
-      const dpadY = Math.floor(this.screenCanvas.height / 2)
-      const dpadX = 130
-
-      const dpadWidth = 39
-
-      if (this.showDpadPrompt) {
+    if (gameState.gameState === STATE.Play) {
+      if (this.showTouchControls) {
         this.screenContext.drawImage(
           this.spritesheet,
-          8 * 8, 20 * 8,
-          dpadWidth, dpadWidth,
-          dpadX - Math.floor(dpadWidth / 2) * this.scaleFactor,
-          dpadY - Math.floor(dpadWidth / 2) * this.scaleFactor,
-          dpadWidth * this.scaleFactor, dpadWidth * this.scaleFactor
+          2 * 8, 17 * 8 + 24 * this.undoButtonPressed,
+          24, 24,
+          this.screenCanvas.width - (5 + 24) * this.scaleFactor * 2, 5 * this.scaleFactor,
+          24 * this.scaleFactor, 24 * this.scaleFactor
         )
-      }
-
-      if (this.showJumpPrompt) {
-        const jumpButtonWidth = 38
-        const jumpButtonHeight = 15
 
         this.screenContext.drawImage(
           this.spritesheet,
-          2 * 8, 23 * 8,
-          jumpButtonWidth, jumpButtonHeight,
-          this.screenCanvas.width - dpadX - Math.floor(jumpButtonWidth / 2) * this.scaleFactor,
-          dpadY - Math.floor(jumpButtonHeight / 2) * this.scaleFactor,
-          jumpButtonWidth * this.scaleFactor, jumpButtonHeight * this.scaleFactor
+          5 * 8, 17 * 8 + 24 * this.restartButtonPressed,
+          24, 24,
+          this.screenCanvas.width - (5 + 24) * this.scaleFactor, 5 * this.scaleFactor,
+          24 * this.scaleFactor, 24 * this.scaleFactor
+        )
+
+        const dpadY = Math.floor(this.screenCanvas.height / 2)
+        const dpadX = 130
+
+        const dpadWidth = 39
+
+        if (this.showDpadPrompt) {
+          this.screenContext.drawImage(
+            this.spritesheet,
+            8 * 8, 20 * 8,
+            dpadWidth, dpadWidth,
+            dpadX - Math.floor(dpadWidth / 2) * this.scaleFactor,
+            dpadY - Math.floor(dpadWidth / 2) * this.scaleFactor,
+            dpadWidth * this.scaleFactor, dpadWidth * this.scaleFactor
+          )
+        }
+
+        if (this.showJumpPrompt) {
+          const jumpButtonWidth = 38
+          const jumpButtonHeight = 15
+
+          this.screenContext.drawImage(
+            this.spritesheet,
+            2 * 8, 23 * 8,
+            jumpButtonWidth, jumpButtonHeight,
+            this.screenCanvas.width - dpadX - Math.floor(jumpButtonWidth / 2) * this.scaleFactor,
+            dpadY - Math.floor(jumpButtonHeight / 2) * this.scaleFactor,
+            jumpButtonWidth * this.scaleFactor, jumpButtonHeight * this.scaleFactor
+          )
+        }
+      } else {
+        this.screenContext.drawImage(
+          this.spritesheet,
+          8 * 8, 17 * 8,
+          62, 15,
+          this.screenCanvas.width - (5 + 62) * this.scaleFactor, this.screenCanvas.height - (5 + 15) * this.scaleFactor,
+          62 * this.scaleFactor, 15 * this.scaleFactor
         )
       }
-    } else {
-      this.screenContext.drawImage(
-        this.spritesheet,
-        8 * 8, 17 * 8,
-        62, 15,
-        this.screenCanvas.width - (5 + 62) * this.scaleFactor, this.screenCanvas.height - (5 + 15) * this.scaleFactor,
-        62 * this.scaleFactor, 15 * this.scaleFactor
-      )
     }
 
-
+    if (gameState.gameState === STATE.Title) {
+      clearCanvas(this.screenContext, CLEAR_COLOR)
+      const textWidth = 53
+      const textHeight = 10
+      this.screenContext.drawImage(
+        this.spritesheet,
+        7 * 8, 14 * 8, textWidth, textHeight,
+        this.screenCanvas.width / 2 - Math.floor(textWidth / 2) * this.scaleFactor,
+        this.screenCanvas.height / 2 - Math.floor(textHeight / 2) * this.scaleFactor,
+        textWidth * this.scaleFactor, textHeight * this.scaleFactor
+      )
+    }
 
     // this.screenContext.beginPath()
     // this.screenContext.fillStyle = '#ff000088'
