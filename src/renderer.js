@@ -359,9 +359,9 @@ class Renderer {
         this.screenContext.drawImage(
           this.spritesheet,
           8 * 8, 17 * 8,
-          62, 15,
-          this.screenCanvas.width - (5 + 62) * this.scaleFactor, this.screenCanvas.height - (5 + 15) * this.scaleFactor,
-          62 * this.scaleFactor, 15 * this.scaleFactor
+          64, 24,
+          this.screenCanvas.width - (5 + 64) * this.scaleFactor, this.screenCanvas.height - (5 + 24) * this.scaleFactor,
+          64 * this.scaleFactor, 24 * this.scaleFactor
         )
       }
     }
