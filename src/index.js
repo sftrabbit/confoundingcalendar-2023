@@ -152,8 +152,8 @@ window.onload = () => {
           }
         }
 
-        if (animationHandler.hasPendingTransactions()) {
-          if (inputHandler.jumpQueued || inputHandler.directionalMovement != null) {
+        if (animationHandler.hasPendingTransactions() && gameState.isPlant) {
+          if (inputHandler.directionalMovement != null) {
             animationHandler.clear()
           }
         }
