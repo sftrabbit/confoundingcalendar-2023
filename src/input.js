@@ -12,8 +12,6 @@ const MOVEMENT_TO_KEY = {
   [MOVEMENT.Left]: 'ArrowLeft',
 }
 
-// TODO - clear inputs when losing focus on game
-
 class InputHandler {
   constructor (renderer) {
     this.jumpQueued = false
@@ -52,6 +50,18 @@ class InputHandler {
     document.addEventListener('touchmove', (event) => {
       this.onTouchMove(event)
     })
+
+    window.onblur = () => {
+      this.jumpQueued = false
+      this.horizontalMovementStack = []
+      this.verticalMovementStack = []
+      this.undoPressed = false
+      this.restart = false
+      this.directionalMovement = null
+      this.movementTouches = []
+      this.undoTouchId = null
+      this.restartTouchId = null
+    }
   }
 
   onKeyDown (event) {
