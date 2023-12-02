@@ -58,6 +58,7 @@ class GameState {
     this.plantEyeDir = MOVEMENT.Down
 
     this.dead = false
+    this.gameState = false
   }
 
   serialize (playerPosition, playerFacing) {

@@ -45,6 +45,17 @@ export function applyRules(gameState, event) {
     }
   }
 
+  if (event.type === 'end') {
+    animations.push({
+      fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
+      toPosition: { x: Math.floor(gameState.player.position.x) + 0.5, y: Math.floor( gameState.player.position.y) + 0.5 },
+      objectTypes: 'end',
+      durationSeconds: 2,
+      tween: 'fast'
+    })
+    return [null, true, animations]
+  }
+
   if (event.type === 'plant-move' || gameState.plantMovementFrom != null) {
     const eyeAnimationIndex = animations.push({
       fromPosition: { x: gameState.plant.position.x, y: gameState.plant.position.y },

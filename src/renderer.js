@@ -194,6 +194,15 @@ class Renderer {
           drawPosition.y,
           8, 8
         )
+      } else if (visual.objectTypes === 'end') {
+        const frame = Math.min(7, Math.floor((timestamp - visual.startTimestamp) / 120))
+        this.renderContext.drawImage(
+          this.spritesheet,
+          9 * 8, frame * 8, 8, 8,
+          drawPosition.x - 4,
+          drawPosition.y - 4,
+          8, 8
+        )
       } else {
         const playerSpriteSourcePosition = getPlayerSpritePosition(gameState, timestamp, visual.type, overridePushAnimation)
         this.renderContext.drawImage(
@@ -213,6 +222,34 @@ class Renderer {
       }
     }
 
+    if (gameState.end) {
+      if (timestamp > (gameState.end + 1000)) {
+        const frame = Math.min(5, Math.floor((timestamp - (gameState.end + 1000)) / 100))
+        for (let x = 0; x < gameState.level.width; x++) {
+          for (let y = 0; y < gameState.level.height; y++) {
+            const drawPosition = {
+              x: x * CELL_DIMENSIONS.width,
+              y: y * CELL_DIMENSIONS.height
+            }
+            this.renderContext.drawImage(
+              this.spritesheet,
+              10 * 8, frame * 8, 8, 8,
+              drawPosition.x, drawPosition.y,
+              8, 8
+            )
+          }
+        }
+      }
+
+      if (timestamp > (gameState.end + 2000)) {
+        this.renderContext.drawImage(
+          this.spritesheet,
+          2 * 8, 16 * 8, 9 * CELL_DIMENSIONS.width, 8,
+          9 * CELL_DIMENSIONS.width, 8 * CELL_DIMENSIONS.width,
+          9 * CELL_DIMENSIONS.width, 8
+        )
+      }
+    }
 
     // this.renderContext.fillStyle = '#ff0000'
     // this.renderContext.beginPath()

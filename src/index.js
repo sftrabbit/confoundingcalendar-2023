@@ -30,7 +30,6 @@ window.onload = () => {
 
     const tick = (timestamp) => {
       if (previousTimestamp != null) {
-        console.log('----')
         let deltaTime = timestamp - previousTimestamp
 
         if (inputHandler.skipFrame) {
@@ -73,7 +72,7 @@ window.onload = () => {
           }
         }
 
-        if (!animationHandler.hasPendingTransactions() || gameState.dead) {
+        if (!(animationHandler.hasPendingTransactions() || gameState.dead || gameState.end)) {
           const priorGroundPosition = gameState.lastGroundPosition
           const priorGroundFacing = gameState.lastGroundFacing
 
@@ -190,7 +189,7 @@ window.onload = () => {
 function getStaticTransaction(gameState, timestamp) {
   const level = gameState.level
 
-  const transaction = gameState.isPlant ? [] : [{
+  const transaction = (gameState.isPlant || gameState.end) ? [] : [{
     fromPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     toPosition: { x: gameState.player.position.x, y: gameState.player.position.y },
     objectTypes: null,
@@ -250,7 +249,10 @@ function interpolateVisuals (activeTransaction, timestamp) {
           const distance = 0.5 * GRAVITY_CELLS_PER_SECOND_2 * timePassed * timePassed
           return fromPosition + (distance * (vector > 0))
         }
-        : (fromPosition, vector, t) => fromPosition + t * vector
+        : (animation.tween === 'fast'
+          ? (fromPosition, vector, t) => fromPosition + Math.min(t * 10, 1) * vector
+          : (fromPosition, vector, t) => fromPosition + t * vector
+        )
 
       visuals.push({
         startTimestamp: animation.startTimestamp,

@@ -30,6 +30,9 @@ class InputHandler {
       return
     }
 
+    event.stopPropagation()
+    event.preventDefault()
+
     if (event.key == 'ArrowUp') {
       this.jumpQueued = true
       if (this.verticalMovementStack.indexOf(MOVEMENT.Up) === -1) {
@@ -64,9 +67,14 @@ class InputHandler {
     if (event.key == 'b') {
       this.skipFrame = true
     }
+
+    return false
   }
 
   onKeyUp (event) {
+    event.stopPropagation()
+    event.preventDefault()
+
     if (event.key == 'ArrowUp') {
       const i = this.verticalMovementStack.indexOf(MOVEMENT.Up)
       if (i !== -1) {
@@ -91,6 +99,8 @@ class InputHandler {
         this.verticalMovementStack.splice(i, 1)
       }
     }
+
+    return false
   }
 
   getHorizontalMovement () {

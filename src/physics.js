@@ -1,5 +1,5 @@
 import { MOVEMENT } from './input'
-import { OBJECT_GROUPS } from './level'
+import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 
 const WALK_VELOCITY_CELLS_PER_SECOND = 3.5
 const JUMP_VELOCITY_CELLS_PER_SECOND = 7
@@ -16,6 +16,14 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   let event = null
   let physicsChanged = false
 
+  const player = gameState.player
+  const level = gameState.level
+
+  const playerCellPosition = {
+    x: Math.floor(player.position.x),
+    y: Math.floor(player.position.y)
+  }
+
   if (gameState.isPlant) {
     if (inputHandler.directionalMovement != null) {
       const event = { type: 'plant-move', dir: inputHandler.directionalMovement }
@@ -24,12 +32,16 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     }
 
     return { event: null, physicsChanged: false }
+  } else {
+    if (level.hasObject(playerCellPosition, OBJECT_TYPES.Door)) {
+      const event = { type: 'end' }
+      inputHandler.directionalMovement = null
+      gameState.end = timestamp
+      return { event, physicsChanged: false } 
+    }
   }
 
   inputHandler.directionalMovement = null
-
-  const player = gameState.player
-  const level = gameState.level
 
   const horizontalMovement = inputHandler.getHorizontalMovement()
 
@@ -123,11 +135,6 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
   const horizontalCollision = leftCollision || rightCollision
 
   let onGround = player.velocity.y >= 0 && verticalCollision != null
-
-  const playerCellPosition = {
-    x: Math.floor(player.position.x),
-    y: Math.floor(player.position.y)
-  }
 
   if (verticalCollision) {
     // Leniency when colliding with ceiling/floor but there is a gap to move into
