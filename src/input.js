@@ -50,6 +50,11 @@ class InputHandler {
     document.addEventListener('touchmove', (event) => {
       this.onTouchMove(event)
     })
+    document.addEventListener('click', (event) => {
+      if (!this.initialInput) {
+        this.initialInput = true
+      }
+    })
 
     window.onblur = () => {
       this.jumpQueued = false
