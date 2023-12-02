@@ -33,6 +33,11 @@ class Renderer {
 
     this.animationHandler = animationHandler
     this.spritesheet = spritesheet
+    this.scaleFactor = 1
+
+    this.undoButtonPressed = false
+    this.restartButtonPressed = false
+    this.showTouchControls = false
   }
 
   render (gameState, visuals, timestamp, overridePushAnimation) {
@@ -264,7 +269,7 @@ class Renderer {
     const screenAspectRatio = this.screenCanvas.clientWidth / this.screenCanvas.clientHeight
     const renderAspectRatio = gameState.level.width / gameState.level.height
 
-    const scaleFactor = screenAspectRatio > renderAspectRatio
+    this.scaleFactor = screenAspectRatio > renderAspectRatio
       ? Math.floor(this.screenCanvas.height / this.renderCanvas.height)
       : Math.floor(this.screenCanvas.width / this.renderCanvas.width)
 
@@ -277,9 +282,51 @@ class Renderer {
       this.renderCanvas,
       0, 0,
       this.renderCanvas.width, this.renderCanvas.height,
-      centerPosition.x - Math.floor((this.renderCanvas.width * scaleFactor) / 2), centerPosition.y - Math.floor((this.renderCanvas.height * scaleFactor) / 2),
-      this.renderCanvas.width * scaleFactor, this.renderCanvas.height * scaleFactor
+      centerPosition.x - Math.floor((this.renderCanvas.width * this.scaleFactor) / 2), centerPosition.y - Math.floor((this.renderCanvas.height * this.scaleFactor) / 2),
+      this.renderCanvas.width * this.scaleFactor, this.renderCanvas.height * this.scaleFactor
     )
+
+    if (this.showTouchControls) {
+      this.screenContext.drawImage(
+        this.spritesheet,
+        2 * 8, 17 * 8 + 24 * this.undoButtonPressed,
+        24, 24,
+        this.screenCanvas.width - (5 + 24) * this.scaleFactor * 2, 5 * this.scaleFactor,
+        24 * this.scaleFactor, 24 * this.scaleFactor
+      )
+
+      this.screenContext.drawImage(
+        this.spritesheet,
+        5 * 8, 17 * 8 + 24 * this.restartButtonPressed,
+        24, 24,
+        this.screenCanvas.width - (5 + 24) * this.scaleFactor, 5 * this.scaleFactor,
+        24 * this.scaleFactor, 24 * this.scaleFactor
+      )
+    } else {
+      this.screenContext.drawImage(
+        this.spritesheet,
+        8 * 8, 17 * 8,
+        62, 15,
+        this.screenCanvas.width - (5 + 62) * this.scaleFactor, this.screenCanvas.height - (5 + 15) * this.scaleFactor,
+        62 * this.scaleFactor, 15 * this.scaleFactor
+      )
+    }
+
+    // const dpadY = Math.floor(this.screenCanvas.height / 2)
+    // const dpadX = 150
+
+    // this.screenContext.beginPath()
+    // this.screenContext.fillStyle = '#ff000088'
+    // this.screenContext.rect(0, 0, dpadX * 2, this.screenCanvas.height)
+    // this.screenContext.fill()
+
+    // this.screenContext.beginPath()
+    // this.screenContext.fillStyle = '#00ff0088'
+    // this.screenContext.rect(
+    //   Math.floor(this.screenCanvas.width / 2), 0,
+    //   Math.floor(this.screenCanvas.width / 2), this.screenCanvas.height
+    // )
+    // this.screenContext.fill()
 
     this.screenContext.restore()
     this.renderContext.restore()
