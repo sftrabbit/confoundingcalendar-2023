@@ -78,17 +78,17 @@ class InputHandler {
     event.stopPropagation()
     event.preventDefault()
 
-    if (event.key == 'ArrowUp') {
+    if (event.key == 'ArrowUp' || event.key == 'w') {
       this.onJumpPress()
       this.onDirectionPress(MOVEMENT.Up)
     }
-    if (event.key == 'ArrowLeft') {
+    if (event.key == 'ArrowLeft' || event.key == 'a') {
       this.onDirectionPress(MOVEMENT.Left)
     }
-    if (event.key == 'ArrowRight') {
+    if (event.key == 'ArrowRight' || event.key == 'd') {
       this.onDirectionPress(MOVEMENT.Right)
     }
-    if (event.key == 'ArrowDown') {
+    if (event.key == 'ArrowDown' || event.key == 's') {
       this.onDirectionPress(MOVEMENT.Down)
     }
     if (event.key == 'z') {
@@ -107,16 +107,16 @@ class InputHandler {
     event.stopPropagation()
     event.preventDefault()
 
-    if (event.key == 'ArrowUp') {
+    if (event.key == 'ArrowUp' || event.key == 'w') {
       this.onDirectionRelease(MOVEMENT.Up)
     }
-    if (event.key == 'ArrowLeft') {
+    if (event.key == 'ArrowLeft' || event.key == 'a') {
       this.onDirectionRelease(MOVEMENT.Left)
     }
-    if (event.key == 'ArrowRight') {
+    if (event.key == 'ArrowRight' || event.key == 'd') {
       this.onDirectionRelease(MOVEMENT.Right)
     }
-    if (event.key == 'ArrowDown') {
+    if (event.key == 'ArrowDown' || event.key == 's') {
       this.onDirectionRelease(MOVEMENT.Down)
     }
 
