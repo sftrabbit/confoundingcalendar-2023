@@ -94,7 +94,7 @@ window.onload = async () => {
         if (needJumpPrompt && !gameState.isPlant && gameState.lastOnGroundTimestamp !== 0) {
           needJumpPrompt = false
           renderer.showJumpPrompt = true
-          requiredMovementPresses = inputHandler.movementPressCount + 10
+          requiredMovementPresses = inputHandler.movementPressCount + 5
           requiredJumpPresses = inputHandler.jumpPressCount + 3
         }
 
