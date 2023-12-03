@@ -14,7 +14,7 @@ const OPPOSITE_MOVEMENTS = {
   [MOVEMENT.Left]: MOVEMENT.Right,
 }
 
-export function applyRules(gameState, event) {
+export function applyRules(gameState, audio, event) {
   const level = gameState.level
 
   const animations = []
@@ -117,6 +117,7 @@ export function applyRules(gameState, event) {
       gameState.player.position.x = nextPosition.x + 0.5
       gameState.player.position.y = nextPosition.y + 0.5
       gameState.isPlant = false
+      audio.playSound('emerge')
     }
 
     animations[eyeAnimationIndex].toPosition.x = nextPosition.x
@@ -126,6 +127,8 @@ export function applyRules(gameState, event) {
       x: (gameState.plant.position.x + nextPosition.x) / 2,
       y: (gameState.plant.position.y + nextPosition.y) / 2
     }
+
+    audio.playSound('grow')
 
     if (enteringExistingPath) {
       gameState.plantMovementFrom = oppositeMovement
@@ -383,6 +386,8 @@ export function applyRules(gameState, event) {
           type: event.dir
         }
 
+        audio.playSound('enter')
+
         return [{ type: 'again' }, true, animations]
       }
     }
@@ -400,6 +405,7 @@ export function applyRules(gameState, event) {
         animation.durationSeconds = 0.2
       }
     }
+    audio.playSound('push')
     return [{ type: 'again' }, true, animations]
   }
 

@@ -11,7 +11,7 @@ const CLEAR_COLOR = '#0e0e12'
 const BACKGROUND_COLOR = '#a6a6bf'
 
 class Renderer {
-  constructor (containerElement, gameState, animationHandler, spritesheet) {
+  constructor (containerElement, gameState, animationHandler, audio, spritesheet) {
     this.screenCanvas = containerElement.querySelector('canvas')
     this.screenContext = this.screenCanvas.getContext('2d')
 
@@ -42,6 +42,8 @@ class Renderer {
 
     this.showDpadPrompt = false
     this.showJumpPrompt = false
+
+    this.audio = audio
   }
 
   render (gameState, visuals, timestamp, overridePushAnimation) {
@@ -259,6 +261,10 @@ class Renderer {
       }
 
       if (timestamp > (gameState.endTimestamp + 2000)) {
+        if (!gameState.endingSoundPlayed) {
+          this.audio.playSound('end')
+          gameState.endingSoundPlayed = true
+        }
         this.renderContext.drawImage(
           this.spritesheet,
           2 * 8, 16 * 8, 9 * CELL_DIMENSIONS.width, 8,

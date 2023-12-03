@@ -13,12 +13,14 @@ const ANTICOYOTE_TIME_SECONDS = 0.1
 
 const PUSH_HOLD_TIME_SECONDS = 0.3
 
-export function updatePhysics(gameState, inputHandler, timestamp, fps) {
+export function updatePhysics(gameState, inputHandler, audio, timestamp, fps) {
   let event = null
   let physicsChanged = false
 
   const player = gameState.player
   const level = gameState.level
+
+  const fallVelocity = player.velocity.y
 
   const playerCellPosition = {
     x: Math.floor(player.position.x),
@@ -295,6 +297,7 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     if (onGround || (timestamp - gameState.lastOnGroundTimestamp) < COYOTE_TIME_SECONDS * 1000) {
       gameState.jumpTimestamp = timestamp
       gameState.lastOnGroundTimestamp = 0
+      audio.playSound('jump')
     }
     inputHandler.jumpQueued = false
   }
@@ -303,6 +306,9 @@ export function updatePhysics(gameState, inputHandler, timestamp, fps) {
     gameState.playerJumpingDir = Math.sign(player.velocity.y - 3)
     gameState.wasOnGround = false
   } else {
+    if (!gameState.wasOnGround && fallVelocity > 8) {
+      audio.playSound('playerFall')
+    }
     if (!gameState.wasOnGround && gameState.lastGroundPosition != null && Math.floor(player.position.y) !== Math.floor(gameState.lastGroundPosition.y)) {
       physicsChanged = true
     }
