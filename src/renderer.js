@@ -306,6 +306,47 @@ class Renderer {
       y: Math.floor(this.screenCanvas.height / 2)
     }
 
+
+    if (gameState.speakTimestamp != null) {
+      const speakElapsed = timestamp - gameState.speakTimestamp
+      const bubble = speakElapsed > 2000 ? 1 : 0
+      let pixelsToShow = 11
+      if (speakElapsed < 300) {
+        const reveal = (timestamp - gameState.speakTimestamp) / 300
+        pixelsToShow = Math.min(11, Math.ceil(reveal * 11))
+        if (gameState.sayOhno) {
+          this.audio.playSound('ohno')
+          gameState.sayOhno = false
+        }
+      } else if (speakElapsed >= 1700 && speakElapsed < 2000) {
+        const reveal = 1 - (timestamp - (gameState.speakTimestamp + 1700)) / 300
+        pixelsToShow = Math.min(11, Math.ceil(reveal * 11))
+      } else if (speakElapsed >= 2000 && speakElapsed < 2300) {
+        const reveal = (timestamp - (gameState.speakTimestamp + 2000)) / 300
+        pixelsToShow = Math.min(11, Math.ceil(reveal * 11))
+        if (gameState.sayWrongroom) {
+          this.audio.playSound('wrongroom')
+          gameState.sayWrongroom = false
+        }
+      } else if (speakElapsed >= 3700 && speakElapsed < 4000) {
+        const reveal = 1 - (timestamp - (gameState.speakTimestamp + 3700)) / 300
+        pixelsToShow = Math.min(11, Math.ceil(reveal * 11))
+      }
+
+      if (speakElapsed >= 4000) {
+        gameState.speakTimestamp = null
+      } else {
+        this.renderContext.drawImage(
+          this.spritesheet,
+          112, 175 + bubble * 11 + (11 - pixelsToShow),
+          44, pixelsToShow,
+          Math.floor(gameState.player.position.x * 8 - (44 / 2)),
+          Math.floor(gameState.player.position.y * 8 - 17 + (11 - pixelsToShow)),
+          44, pixelsToShow
+        )
+      }
+    }
+
     this.screenContext.drawImage(
       this.renderCanvas,
       0, 0,
@@ -333,7 +374,7 @@ class Renderer {
         )
 
         const dpadY = Math.floor(this.screenCanvas.height / 2)
-        const dpadX = 130
+        const dpadX = 110
 
         const dpadWidth = 39
 

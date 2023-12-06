@@ -36,6 +36,12 @@ class GameState {
     this.gameState = STATE.Title
     this.introTimestamp = null
     this.endTimestamp = null
+    this.introSteps = 0
+
+    this.toSpeak = true
+    this.speakTimestamp = null
+    this.sayOhno = true
+    this.sayWrongroom = true
 
     this.reset()
   }

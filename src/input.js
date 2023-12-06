@@ -273,7 +273,7 @@ class InputHandler {
   evaluateMovementTouch (touch) {
     const dpadY = Math.floor(this.renderer.screenCanvas.height / 2)
 
-    const relativeX = touch.clientX - 130
+    const relativeX = touch.clientX - 110
     const relativeY = touch.clientY - dpadY
 
     if (Math.abs(relativeX) < 15 && Math.abs(relativeY) < 15) {

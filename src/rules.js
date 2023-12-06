@@ -1,6 +1,7 @@
 import { OBJECT_TYPES, OBJECT_GROUPS } from './level'
 import { GRAVITY_CELLS_PER_SECOND_2 } from './physics'
 import { MOVEMENT } from './input'
+import { STATE } from './gameState'
 
 const MOVEMENT_CAUSES = {
   Push: 0,
@@ -128,7 +129,12 @@ export function applyRules(gameState, audio, event) {
       y: (gameState.plant.position.y + nextPosition.y) / 2
     }
 
-    audio.playSound('grow')
+    if (gameState.gameState !== STATE.Intro || (gameState.introSteps % 2) === 1) {
+      audio.playSound('grow')
+    }
+    if (gameState.gameState === STATE.Intro) {
+      gameState.introSteps += 1
+    }
 
     if (enteringExistingPath) {
       gameState.plantMovementFrom = oppositeMovement

@@ -96,6 +96,11 @@ window.onload = async () => {
           renderer.showJumpPrompt = true
           requiredMovementPresses = inputHandler.movementPressCount + 5
           requiredJumpPresses = inputHandler.jumpPressCount + 3
+
+          if (gameState.toSpeak) {
+            gameState.speakTimestamp = timestamp
+            gameState.toSpeak = false
+          }
         }
 
         if (!needDpadPrompt && !needJumpPrompt && renderer.showJumpPrompt) {

@@ -24,7 +24,7 @@ class Audio {
 export async function initAudio () {
   const audioContext = new AudioContext();
 
-  const [jumpAudio, pushAudio, blockFallAudio, growAudio, emergeAudio, playerFallAudio, squishAudio, enterAudio, endAudio] = await Promise.all([
+  const [jumpAudio, pushAudio, blockFallAudio, growAudio, emergeAudio, playerFallAudio, squishAudio, enterAudio, endAudio, ohnoAudio, wrongroomAudio] = await Promise.all([
     loadAudio(audioContext, 'jump.wav'),
     loadAudio(audioContext, 'push.wav'),
     loadAudio(audioContext, 'blockfall.wav'),
@@ -33,7 +33,9 @@ export async function initAudio () {
     loadAudio(audioContext, 'playerFall.wav'),
     loadAudio(audioContext, 'squish.wav'),
     loadAudio(audioContext, 'enter.wav'),
-    loadAudio(audioContext, 'end.wav')
+    loadAudio(audioContext, 'end.wav'),
+    loadAudio(audioContext, 'ohno.wav'),
+    loadAudio(audioContext, 'wrongroom.wav')
   ])
 
   return new Audio(audioContext, {
@@ -45,7 +47,9 @@ export async function initAudio () {
     'playerFall': playerFallAudio,
     'squish': squishAudio,
     'enter': enterAudio,
-    'end': endAudio
+    'end': endAudio,
+    'ohno': ohnoAudio,
+    'wrongroom': wrongroomAudio
   })
 }
 
